@@ -10,155 +10,15 @@
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Inter:wght@200;300;400;500;600&display=swap"
     rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #000000;
-      background-attachment: fixed;
-      min-height: 100vh;
-      margin: 0;
-      padding: 0;
-      color: #ffffff;
-      overflow-x: hidden;
-      scroll-behavior: smooth;
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.1), transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(96, 165, 250, 0.1), transparent 50%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .container {
-      width: 100%;
-      min-height: 100vh;
-      padding: 0;
-      margin: 0;
-    }
-
-    .hero-section {
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-    }
-
-    .container.slideshow-active {
-      background: transparent;
-      backdrop-filter: none;
-      border: none;
-      box-shadow: none;
-      padding: 0;
-    }
-
-    h1 {
-      text-align: center;
-      color: #ffffff;
-      font-size: 4em;
-      font-weight: 300;
-      letter-spacing: 8px;
-      text-shadow: 0 0 40px rgba(139, 92, 246, 0.4);
-      margin: 0;
-      font-family: 'DM Sans', sans-serif;
-    }
-
-    .scroll-indicator {
-      position: absolute;
-      bottom: 40px;
-      left: 50%;
-      transform: translateX(-50%);
-      color: rgba(255, 255, 255, 0.5);
-      font-size: 0.9em;
-      letter-spacing: 2px;
-      animation: bounce 2s infinite;
-    }
-
-    @keyframes bounce {
-
-      0%,
-      20%,
-      50%,
-      80%,
-      100% {
-        transform: translateX(-50%) translateY(0);
-      }
-
-      40% {
-        transform: translateX(-50%) translateY(-10px);
-      }
-
-      60% {
-        transform: translateX(-50%) translateY(-5px);
-      }
-    }
-
-    .container.slideshow-active h1,
-    .container.slideshow-active .subtitle,
-    .container.slideshow-active .message,
-    .container.slideshow-active .photo-upload,
-    .container.slideshow-active .slideshow-controls,
-    .container.slideshow-active .drawing-section {
-      opacity: 0;
-      pointer-events: none;
-      position: absolute;
-    }
-
-    .subtitle {
-      text-align: center;
-      color: #ffffff;
-      margin-bottom: 40px;
-      font-size: 1.3em;
-      font-weight: 300;
-      font-style: italic;
-      line-height: 1.6;
-      transition: all 0.5s ease;
-      font-family: 'Cormorant Garamond', serif;
-    }
-
-    .photos-gallery {
-      min-height: 100vh;
-      padding: 80px 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 100px;
-    }
-
-    .photo-item {
-      width: 90%;
-      max-width: 800px;
-      opacity: 0;
-      transform: translateY(60px) scale(0.95);
-      transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .photo-item.visible {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-
-    .photo-item img {
-      width: 100%;
-      height: auto;
-      border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(139, 92, 246, 0.3);
-      display: block;
-    }
-
+    /* Upload-specific styles */
     .upload-section {
       position: fixed;
       bottom: 30px;
@@ -167,155 +27,54 @@
     }
 
     .upload-btn {
-      background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(120, 80, 220, 0.5));
+      background: rgba(255, 255, 255, .10);
       backdrop-filter: blur(20px);
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: var(--text);
+      border: 1px solid var(--line);
       padding: 16px 32px;
       border-radius: 50px;
-      font-size: 15px;
-      font-weight: 400;
+      font-size: .9rem;
+      font-weight: 500;
       cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+      transition: all .3s;
+      box-shadow: var(--shadow);
       font-family: 'Inter', sans-serif;
+      letter-spacing: 0.02em;
     }
 
     .upload-btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 12px 35px rgba(139, 92, 246, 0.6);
+      background: rgba(255, 255, 255, .14);
+      border-color: rgba(255, 255, 255, .20);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .65);
     }
 
     #photoInput {
       display: none;
     }
 
-    .slideshow-controls {
-      display: flex;
-      gap: 15px;
-      justify-content: center;
-      align-items: center;
-      margin-bottom: 20px;
-      padding: 20px;
-      background: rgba(255, 255, 255, 0.6);
-      border-radius: 12px;
-      border: 1px solid rgba(0, 0, 0, 0.05);
-    }
-
-    .slideshow-controls button {
-      background: #3498db;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
-    }
-
-    .slideshow-controls button:hover {
-      background: #2980b9;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
-    }
-
-    .slideshow-controls button.active {
-      background: #27ae60;
-      box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
-    }
-
-    .slideshow-controls input[type="range"] {
-      width: 200px;
-    }
-
-    .slideshow-controls label {
-      font-weight: bold;
-      color: #495057;
-    }
-
-    .photo-upload {
-      margin-bottom: 30px;
-      padding: 40px;
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(20px);
-      border-radius: 20px;
-      border: 2px dashed rgba(255, 255, 255, 0.3);
-      transition: all 0.4s ease;
-      cursor: pointer;
-      box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
-    }
-
-    .photo-upload:hover {
-      background: rgba(255, 255, 255, 0.12);
-      border-color: rgba(139, 92, 246, 0.6);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(139, 92, 246, 0.2),
-        inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
-    }
-
-    .photo-upload.drag-over {
-      background: rgba(139, 92, 246, 0.15);
-      border-color: rgba(139, 92, 246, 0.8);
-      transform: scale(1.02);
-      box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4);
-    }
-
-    .photo-upload h3 {
-      color: #ffffff;
-      font-weight: 300;
-      margin-bottom: 15px;
-      font-size: 1.3em;
-    }
-
-    .photo-upload input {
-      display: block;
-      margin: 10px 0;
-      cursor: pointer;
-    }
-
-    .photo-upload .instructions {
-      font-size: 0.95em;
-      color: #ffffff;
-      margin-top: 10px;
-      line-height: 1.8;
-    }
-
-    .photo-upload .instructions strong {
-      color: #ffffff;
-    }
-
     .drawing-section {
-      margin-top: 40px;
-      transition: all 0.5s ease;
+      margin-top: 60px;
+      width: 100%;
     }
 
     .drawing-section h2 {
-      color: #ffffff;
-      margin-bottom: 30px;
       text-align: center;
-      font-weight: 300;
-      font-size: 2.5em;
-      letter-spacing: 2px;
-      text-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
-      font-family: 'Inter', sans-serif;
+      margin-bottom: 40px;
     }
 
     .canvas-container {
       display: flex;
       justify-content: center;
-      margin-bottom: 25px;
+      margin-bottom: 30px;
     }
 
     #drawingCanvas {
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
       cursor: crosshair;
-      background: rgba(255, 255, 255, 0.05);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
-        inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
+      background: var(--panel);
+      box-shadow: var(--shadow);
     }
 
     .controls {
@@ -324,19 +83,18 @@
       gap: 15px;
       justify-content: center;
       align-items: center;
-      margin-bottom: 30px;
       padding: 25px;
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(20px);
-      border-radius: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+      background: var(--panel);
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      margin-bottom: 30px;
     }
 
     .controls label {
-      font-weight: 300;
-      color: #ffffff;
+      font-weight: 400;
+      color: var(--text);
+      font-size: .9rem;
     }
 
     .controls input[type="color"],
@@ -345,69 +103,75 @@
     }
 
     .controls button {
-      background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(120, 80, 220, 0.4));
-      backdrop-filter: blur(15px);
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      padding: 12px 24px;
+      background: rgba(255, 255, 255, .10);
+      color: var(--text);
+      border: 1px solid var(--line);
+      padding: 10px 20px;
       border-radius: 12px;
-      font-size: 15px;
-      font-weight: 400;
+      font-size: .9rem;
+      font-weight: 500;
       cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3),
-        inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+      transition: all .3s;
     }
 
     .controls button:hover {
-      background: linear-gradient(135deg, rgba(139, 92, 246, 0.5), rgba(120, 80, 220, 0.6));
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5),
-        inset 0 1px 0 0 rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, .14);
+      border-color: rgba(255, 255, 255, .20);
+      transform: translateY(-1px);
     }
 
     .controls button.danger {
-      background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(220, 50, 50, 0.4));
-      border-color: rgba(239, 68, 68, 0.5);
-      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3),
-        inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.3);
     }
 
     .controls button.danger:hover {
-      background: linear-gradient(135deg, rgba(239, 68, 68, 0.5), rgba(220, 50, 50, 0.6));
-      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5),
-        inset 0 1px 0 0 rgba(255, 255, 255, 0.3);
+      background: rgba(239, 68, 68, 0.25);
+      border-color: rgba(239, 68, 68, 0.5);
     }
 
-    .message {
+    .no-photos {
       text-align: center;
-      padding: 30px;
-      margin: 35px 0;
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(20px);
-      color: #ffffff;
-      border-radius: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      font-size: 1.1em;
-      font-weight: 300;
-      line-height: 1.8;
-      transition: all 0.5s ease;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+      padding: 90px 20px;
+      color: var(--muted);
+      font-size: 1.05rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
     }
 
-    @media (max-width: 768px) {
-      h1 {
-        font-size: 2.5em;
-        letter-spacing: 1px;
+    /* accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      .scroll-indicator {
+        animation: none;
       }
 
+      .photo-item {
+        transition: none;
+      }
+
+      .photo-item img {
+        transition: none;
+      }
+    }
+
+    /* mobile */
+    @media (max-width: 768px) {
       .container {
-        padding: 30px;
+        padding: 40px 16px;
+      }
+
+      .photos-gallery {
+        gap: 56px;
+        padding: 56px 0 100px;
       }
 
       #drawingCanvas {
         max-width: 100%;
+      }
+
+      .upload-section {
+        bottom: 20px;
+        right: 20px;
       }
     }
   </style>
