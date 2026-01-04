@@ -1,38 +1,46 @@
 # 💫 Our Memories Together
 
-A beautiful, elegant web page for sharing memories through photos and personal messages. Features a stunning glassmorphism design with dark theme and immersive photo slideshow.
+A beautiful, elegant web page for sharing memories through photos. Features a sophisticated dark design with scroll-based photo gallery and Firebase cloud storage.
 
 ## ✨ Features
 
-- 📸 **Photo Slideshow**: Upload photos and watch them flow smoothly one by one
-  - Drag & drop support from Apple Photos or Finder
-  - Copy/paste images directly (Cmd+V)
-  - Adjustable slideshow speed
-  - Immersive fullscreen mode (UI disappears during slideshow)
+- 📸 **Photo Gallery**: Upload photos that appear beautifully as you scroll
+  - Scroll-based reveal animations
+  - Firebase cloud storage (photos accessible from any device)
+  - Elegant fade-in transitions
+  - Mobile-friendly responsive design
   
-- ✍️ **Drawing Canvas**: Express yourself with drawings or handwritten messages
-  - White pen by default (perfect for dark background)
+- ✍️ **Drawing Canvas** (upload page only): Express yourself with drawings or handwritten messages
   - Color picker for custom colors
   - Adjustable brush size
   - Eraser tool
   - Save your creation as PNG
 
 - 🎨 **Beautiful Design**:
-  - Pure black background with glassmorphism effects
-  - Elegant typography (Playfair Display, Cormorant Garamond, Raleway, Inter)
+  - Sophisticated dark theme (#0b0c0f)
+  - Modern typography (DM Sans headings, Inter body)
+  - Subtle film grain texture
   - Smooth animations and transitions
-  - Mobile-friendly responsive design
+  - No neon effects - clean and professional
+
+## 📱 Two Pages
+
+- **index.html**: View-only page (for sharing)
+- **upload.html**: Admin page with photo upload and drawing tools (keep private)
 
 ## 🌐 Deployment Options
 
-### Option 1: GitHub Pages (Public, Free)
-**Note:** GitHub Pages serves static files only - no password protection.
+### Option 1: GitHub Pages + Firebase (Recommended)
+
+**Step 1: Setup Firebase** (see FIREBASE_SETUP.md)
+
+**Step 2: Deploy to GitHub Pages:**
 
 1. **Push to GitHub:**
    ```bash
    cd /Users/thanujanpuvikaran/Documents/repositories/hehe
-   git add index.html
-   git commit -m "Add memory page"
+   git add .
+   git commit -m "Deploy memory page"
    git push origin main
    ```
 
@@ -42,113 +50,121 @@ A beautiful, elegant web page for sharing memories through photos and personal m
    - Source: Deploy from branch → `main` → `/root`
    - Save
 
-3. **Access your site:**
-   - URL: `https://yourusername.github.io/hehe/`
-   - Usually live within 1-2 minutes
+3. **Access your sites:**
+   - View page: `https://yourusername.github.io/hehe/` (share this)
+   - Upload page: `https://yourusername.github.io/hehe/upload.html` (keep private)
 
-### Option 2: Local Server (Private, Password Protected)
-
-**Prerequisites:** Python 3.6+
+### Option 2: Local Testing
 
 1. **Navigate to directory:**
    ```bash
    cd /Users/thanujanpuvikaran/Documents/repositories/hehe
    ```
 
-2. **Start server:**
+2. **Start simple server:**
    ```bash
-   python3 server.py
+   python3 -m http.server 8000
    ```
 
 3. **Access locally:**
-   - URL: `http://localhost:8888`
-   - Password is in `server.py` (keep this file private!)
+   - View page: `http://localhost:8000/`
+   - Upload page: `http://localhost:8000/upload.html`
 
 ## 🔒 Security Notes
 
-- ⚠️ **server.py contains a hardcoded password** - added to `.gitignore` to prevent accidental commits
-- GitHub Pages deployment = **no password protection** (static hosting only)
-- For password protection, use local server or paid hosting with backend support
-
-6. To stop the server, press `Ctrl+C` in the Terminal
+- ⚠️ Upload page has no password protection - keep the URL private
+- Photos stored in Firebase (free tier: 5GB storage)
+- For production, consider adding Firebase Authentication
 
 ## 🎨 How to Use
 
-### Drawing Your Troll
+### Uploading Photos (upload.html)
 
-1. **Choose a color**: Click the color picker to select your drawing color
-2. **Adjust brush size**: Use the slider to change brush thickness (1-50px)
-3. **Start drawing**: Click and drag on the canvas to draw
-4. **Eraser mode**: Click "Eraser" button to erase parts of your drawing
-5. **Clear canvas**: Click "Clear Canvas" to start over
+1. Click the floating "📸 Upload Photos" button (bottom right)
+2. Select one or multiple photos
+3. Photos automatically upload to Firebase
+4. Photos will appear on both pages
+
+### Drawing (upload.html only)
+
+1. **Choose a color**: Click the color picker
+2. **Adjust brush size**: Use the slider (1-50px)
+3. **Start drawing**: Click and drag on the canvas
+4. **Eraser mode**: Click "Eraser" button
+5. **Clear canvas**: Click "Clear Canvas"
 6. **Save your work**: Click "Save Drawing" to download as PNG
 
-### Adding Photos
+### Viewing Photos (index.html)
 
-1. Click "Choose Files" in the photo upload section
-2. Select one or multiple photos from your computer
-3. Photos will appear in a grid above the drawing canvas
-4. Hover over photos for a zoom effect
+1. Simply scroll down to see photos appear with beautiful animations
+2. No upload capability - perfect for sharing
 
 ## 🛠️ Customization
 
-### Change the Password
+### Change Fonts
 
-Edit `server.py` and modify line 17:
-```python
-SECRET_PASSWORD = "YourNewPasswordHere"
+Edit `styles.css`:
+```css
+h1 {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300; /* or 400, 600 for bolder */
+}
 ```
 
-### Change the Port
+### Change Colors
 
-Edit `server.py` and modify line 16:
-```python
-PORT = 8888  # Change to any available port
+Edit CSS variables in `styles.css`:
+```css
+:root {
+  --bg: #0b0c0f;        /* background color */
+  --text: rgba(255,255,255,.92);  /* text color */
+  --muted: rgba(255,255,255,.62); /* muted text */
+}
 ```
 
-### Change Session Timeout
+### Adjust Photo Spacing
 
-Edit `server.py` and modify line 18:
-```python
-SESSION_TIMEOUT_MINUTES = 60  # Change to desired minutes
+Edit `styles.css`:
+```css
+.photos-gallery {
+  gap: 70px; /* space between photos */
+}
 ```
 
 ## 📁 Project Structure
 
 ```
 hehe/
-├── index.html       # Main birthday page with drawing canvas
-├── server.py        # Secure Python web server
-└── README.md        # This file
+├── index.html         # View-only page (for sharing)
+├── upload.html        # Admin page with upload & drawing
+├── styles.css         # Shared styles for both pages
+├── FIREBASE_SETUP.md  # Firebase configuration guide
+├── server.py          # Local development server
+└── README.md          # This file
 ```
-
-## 🌐 Accessing from Other Devices on Your Network
-
-To access the page from other devices on your local network (like phones or tablets):
-
-1. Find your computer's local IP address:
-   ```bash
-   ipconfig getifaddr en0
-   ```
-
-2. Start the server as usual
-
-3. On other devices, use your computer's IP instead of localhost:
-   ```
-   http://YOUR_IP_ADDRESS:8888
-   ```
-   For example: `http://192.168.1.100:8888`
-
-⚠️ **Important**: Only one person can access at a time, regardless of device!
 
 ## 🔧 Troubleshooting
 
-### "Address already in use" error
-- Another program is using port 8888
-- Either stop that program or change the PORT in server.py
+### Photos not appearing
+- Check Firebase configuration in both HTML files
+- Ensure Firebase rules allow read/write access
+- Check browser console for errors
 
-### Cannot access from other devices
-- Make sure your computer's firewall allows incoming connections on port 8888
+### Styles not loading
+- Ensure `styles.css` is in the same directory as HTML files
+- Check browser developer tools for 404 errors
+
+### Firebase errors
+- Verify your Firebase config values are correct
+- Check that Storage and Realtime Database are enabled
+- Review Firebase security rules
+
+## 💡 Tips
+
+- Keep `upload.html` URL private - only share `index.html`
+- Firebase free tier is generous (5GB storage, plenty for photos)
+- Photos are compressed as base64 in Firebase - consider optimizing large images
+- Test locally before deploying to ensure everything works
 - Ensure both devices are on the same WiFi network
 
 ### Photos not uploading
