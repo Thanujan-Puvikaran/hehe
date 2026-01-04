@@ -263,7 +263,7 @@
     <div class="password-form">
       <h2>Admin Access</h2>
       <input type="password" id="passwordInput" placeholder="Enter password" autocomplete="off">
-      <button onclick="verifyPassword()">Unlock</button>
+      <button id="submitPassword">Unlock</button>
       <div class="error" id="errorMsg">Incorrect password</div>
     </div>
   </div>
@@ -427,7 +427,6 @@
 
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
-    const storage = firebase.storage();
     const database = firebase.database();
 
     // Password Protection
@@ -442,17 +441,19 @@
         // Sign in anonymously to Firebase
         firebase.auth().signInAnonymously()
           .then(() => {
-            // Hide password gate
+            // Hide password gate and show main content
             document.querySelector('.password-gate').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
           })
           .catch((error) => {
             errorMsg.textContent = 'Authentication failed: ' + error.message;
-            errorMsg.style.display = 'block';
+            errorMsg.classList.add('show');
           });
       } else {
         errorMsg.textContent = 'Incorrect password. Please try again.';
-        errorMsg.style.display = 'block';
+        errorMsg.classList.add('show');
         passwordInput.value = '';
+        setTimeout(() => errorMsg.classList.remove('show'), 3000);
       }
     }
 
@@ -463,14 +464,12 @@
       }
     });
 
-    // Photo Upload Handling with Security
-    // Photo Upload Handling with Security
+    // Photo Upload Handling with Security (Simplified - No Storage needed)
     const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
     const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
 
     document.getElementById('photoInput').addEventListener('change', async (e) => {
       const files = e.target.files;
-      const photosGallery = document.getElementById('photosGallery');
 
       // Validate user is authenticated
       const user = firebase.auth().currentUser;
@@ -493,25 +492,28 @@
         }
 
         try {
-          // Upload to Firebase Storage
-          const timestamp = Date.now();
-          const sanitizedName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
-          const storageRef = storage.ref(`memories/${timestamp}_${sanitizedName}`);
+          // Read file as data URL
+          const reader = new FileReader();
 
-          const uploadTask = await storageRef.put(file);
-          const downloadURL = await uploadTask.ref.getDownloadURL();
+          reader.onload = async (event) => {
+            const dataURL = event.target.result;
+            const timestamp = Date.now();
 
-          // Save to Firebase Database
-          const photoRef = database.ref('photos').push();
-          await photoRef.set({
-            url: downloadURL,
-            timestamp: timestamp,
-            size: file.size,
-            type: file.type
-          });
+            // Save directly to Firebase Database (no Storage needed)
+            const photoRef = database.ref('photos').push();
+            await photoRef.set({
+              url: dataURL,
+              timestamp: timestamp,
+              size: file.size,
+              type: file.type,
+              name: file.name
+            });
 
-          // Display photo
-          displayPhoto(downloadURL);
+            // Display photo
+            displayPhoto(dataURL);
+          };
+
+          reader.readAsDataURL(file);
 
         } catch (error) {
           console.error('Upload error:', error);
