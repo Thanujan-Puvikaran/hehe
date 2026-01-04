@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Memories Together</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@200;300;400;500&family=Playfair+Display:wght@400;500;600&family=Raleway:wght@200;300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #000000;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.1), transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(96, 165, 250, 0.1), transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-radius: 24px;
+            padding: 60px;
+            max-width: 1200px;
+            width: 100%;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5),
+                        inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            z-index: 1;
+            transition: all 0.5s ease;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            border-radius: 24px 24px 0 0;
+        }
+
+        .container.slideshow-active {
+            background: transparent;
+            backdrop-filter: none;
+            border: none;
+            box-shadow: none;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            color: #ffffff;
+            margin-bottom: 15px;
+            font-size: 3.5em;
+            font-weight: 400;
+            letter-spacing: 3px;
+            text-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
+            transition: all 0.5s ease;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .container.slideshow-active h1,
+        .container.slideshow-active .subtitle,
+        .container.slideshow-active .message,
+        .container.slideshow-active .photo-upload,
+        .container.slideshow-active .slideshow-controls,
+        .container.slideshow-active .drawing-section {
+            opacity: 0;
+            pointer-events: none;
+            position: absolute;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #ffffff;
+            margin-bottom: 40px;
+            font-size: 1.3em;
+            font-weight: 300;
+            font-style: italic;
+            line-height: 1.6;
+            transition: all 0.5s ease;
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        .photos-section {
+            position: relative;
+            min-height: 600px;
+            margin-bottom: 40px;
+            padding: 0;
+            background: transparent;
+            border-radius: 20px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.5s ease;
+        }
+
+        .container.slideshow-active .photos-section {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            min-height: 100vh;
+            margin: 0;
+            border-radius: 0;
+            z-index: 9999;
+            background: #000000;
+        }
+
+        .photo-container {
+            position: absolute;
+            width: 90%;
+            max-width: 900px;
+            aspect-ratio: 4/3;
+            overflow: hidden;
+            border-radius: 16px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transform: translateY(-100%) scale(0.9);
+            transition: all 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .container.slideshow-active .photo-container {
+            width: 95%;
+            max-width: 100%;
+            max-height: 95vh;
+            border-radius: 8px;
+        }
+
+        .photo-container.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .photo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: transparent;
+        }
+
+        .slideshow-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 12px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .slideshow-controls button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+        }
+
+        .slideshow-controls button:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+        }
+
+        .slideshow-controls button.active {
+            background: #27ae60;
+            box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+        }
+
+        .slideshow-controls input[type="range"] {
+            width: 200px;
+        }
+
+        .slideshow-controls label {
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .photo-upload {
+            margin-bottom: 30px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .photo-upload:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(139, 92, 246, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.2),
+                        inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
+        }
+
+        .photo-upload.drag-over {
+            background: rgba(139, 92, 246, 0.15);
+            border-color: rgba(139, 92, 246, 0.8);
+            transform: scale(1.02);
+            box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4);
+        }
+
+        .photo-upload h3 {
+            color: #ffffff;
+            font-weight: 300;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .photo-upload input {
+            display: block;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+
+        .photo-upload .instructions {
+            font-size: 0.95em;
+            color: #ffffff;
+            margin-top: 10px;
+            line-height: 1.8;
+        }
+
+        .photo-upload .instructions strong {
+            color: #ffffff;
+        }
+
+        .drawing-section {
+            margin-top: 40px;
+            transition: all 0.5s ease;
+        }
+
+        .drawing-section h2 {
+            color: #ffffff;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 300;
+            font-size: 2.5em;
+            letter-spacing: 2px;
+            text-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .canvas-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+
+        #drawingCanvas {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            cursor: crosshair;
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+                        inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3),
+                        inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .controls label {
+            font-weight: 300;
+            color: #ffffff;
+        }
+
+        .controls input[type="color"],
+        .controls input[type="range"] {
+            cursor: pointer;
+        }
+
+        .controls button {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(120, 80, 220, 0.4));
+            backdrop-filter: blur(15px);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 400;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3),
+                        inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .controls button:hover {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.5), rgba(120, 80, 220, 0.6));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5),
+                        inset 0 1px 0 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .controls button.danger {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(220, 50, 50, 0.4));
+            border-color: rgba(239, 68, 68, 0.5);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3),
+                        inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .controls button.danger:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.5), rgba(220, 50, 50, 0.6));
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5),
+                        inset 0 1px 0 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .message {
+            text-align: center;
+            padding: 30px;
+            margin: 35px 0;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            color: #ffffff;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 1.1em;
+            font-weight: 300;
+            line-height: 1.8;
+            transition: all 0.5s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3),
+                        inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5em;
+                letter-spacing: 1px;
+            }
+            
+            .container {
+                padding: 30px;
+            }
+            
+            #drawingCanvas {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Our Memories Together</h1>
+        
+        <!-- Photo Upload Section -->
+        <div class="photo-upload" id="photoUpload">
+            <h3>📸 Add Your Photos</h3>
+            <input type="file" id="photoInput" accept="image/*" multiple>
+            <div class="instructions">
+                <strong>3 Ways to Add Photos:</strong>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>Click "Choose Files" to browse your Photos library</li>
+                    <li>Drag & drop photos from Apple Photos or Finder into this box</li>
+                    <li>Paste photos directly (Cmd+V)</li>
+                </ul>
+                <em>💡 Tip: Open Apple Photos, select multiple photos, then drag them here!</em>
+            </div>
+        </div>
+
+        <!-- Slideshow Controls -->
+        <div class="slideshow-controls">
+            <button id="startStopBtn">▶️ Start Slideshow</button>
+            <label for="speedControl">Speed:</label>
+            <input type="range" id="speedControl" min="500" max="5000" value="2000" step="100">
+            <span id="speedDisplay">2.0s</span>
+        </div>
+
+        <!-- Photos Display -->
+        <div class="photos-section" id="photosSection">
+            <p style="color: #6c757d;">Upload photos to start the slideshow</p>
+        </div>
+
+        <!-- Drawing Section -->
+        <div class="drawing-section">
+            <h2>Express What's in Your Heart</h2>
+            
+            <div class="controls">
+                <label for="colorPicker">Color:</label>
+                <input type="color" id="colorPicker" value="#ffffff">
+                
+                <label for="brushSize">Brush Size:</label>
+                <input type="range" id="brushSize" min="1" max="50" value="5">
+                <span id="sizeDisplay">5px</span>
+                
+                <button id="clearBtn" class="danger">Clear Canvas</button>
+                <button id="saveBtn">Save Drawing</button>
+                <button id="eraserBtn">Eraser</button>
+            </div>
+
+            <div class="canvas-container">
+                <canvas id="drawingCanvas" width="800" height="600"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Canvas Setup
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let currentColor = '#ffffff';
+        let brushSize = 5;
+        let isEraser = false;
+
+        // Drawing Functions
+        function startDrawing(e) {
+            isDrawing = true;
+            draw(e);
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.beginPath();
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            ctx.lineWidth = brushSize;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = isEraser ? '#ffffff' : currentColor;
+
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+
+        // Event Listeners for Drawing
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch support for mobile
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        });
+
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            const mouseEvent = new MouseEvent('mouseup', {});
+            canvas.dispatchEvent(mouseEvent);
+        });
+
+        // Color Picker
+        document.getElementById('colorPicker').addEventListener('change', (e) => {
+            currentColor = e.target.value;
+            isEraser = false;
+        });
+
+        // Brush Size
+        document.getElementById('brushSize').addEventListener('input', (e) => {
+            brushSize = e.target.value;
+            document.getElementById('sizeDisplay').textContent = brushSize + 'px';
+        });
+
+        // Clear Canvas
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear the canvas?')) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        });
+
+        // Eraser
+        document.getElementById('eraserBtn').addEventListener('click', () => {
+            isEraser = !isEraser;
+            const btn = document.getElementById('eraserBtn');
+            btn.style.background = isEraser ? 'rgba(251, 191, 36, 0.4)' : 'rgba(139, 92, 246, 0.3)';
+            btn.textContent = isEraser ? 'Drawing Mode' : 'Eraser';
+        });
+
+        // Save Drawing
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'my-message.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+
+        // Photo Upload Handling
+        let photos = [];
+        let currentPhotoIndex = 0;
+        let slideshowInterval = null;
+        let slideshowSpeed = 2000; // milliseconds
+        let isPlaying = false;
+
+        // Handle file selection from input
+        document.getElementById('photoInput').addEventListener('change', (e) => {
+            const files = e.target.files;
+            const photosSection = document.getElementById('photosSection');
+            
+            // Clear existing photos
+            photosSection.innerHTML = '';
+            photos = [];
+            
+            // Load all photos
+            let loadedCount = 0;
+            const totalFiles = files.length;
+            
+            for (let file of files) {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = (event) => {
+                        photos.push(event.target.result);
+                        loadedCount++;
+                        
+                        // When all photos are loaded, create containers
+                        if (loadedCount === totalFiles) {
+                            createPhotoContainers();
+                        }
+                    };
+                    
+                    reader.readAsDataURL(file);
+                }
+            }
+        });
+
+        function createPhotoContainers() {
+            const photosSection = document.getElementById('photosSection');
+            photosSection.innerHTML = '';
+            
+            photos.forEach((photoSrc, index) => {
+                const photoContainer = document.createElement('div');
+                photoContainer.className = 'photo-container';
+                photoContainer.dataset.index = index;
+                
+                const img = document.createElement('img');
+                img.src = photoSrc;
+                img.alt = `Photo ${index + 1}`;
+                
+                photoContainer.appendChild(img);
+                photosSection.appendChild(photoContainer);
+            });
+            
+            // Show first photo
+            if (photos.length > 0) {
+                showPhoto(0);
+            }
+        }
+
+        function showPhoto(index) {
+            const containers = document.querySelectorAll('.photo-container');
+            
+            // Hide all photos
+            containers.forEach(container => {
+                container.classList.remove('active');
+            });
+            
+            // Show current photo
+            if (containers[index]) {
+                containers[index].classList.add('active');
+            }
+            
+            currentPhotoIndex = index;
+        }
+
+        function nextPhoto() {
+            if (photos.length === 0) return;
+            
+            currentPhotoIndex = (currentPhotoIndex + 1) % photos.length;
+            showPhoto(currentPhotoIndex);
+        }
+
+        function startSlideshow() {
+            if (photos.length === 0) {
+                alert('Please upload some photos first!');
+                return;
+            }
+            
+            isPlaying = true;
+            const btn = document.getElementById('startStopBtn');
+            const container = document.querySelector('.container');
+            
+            btn.textContent = '⏸️ Stop Slideshow';
+            btn.classList.add('active');
+            container.classList.add('slideshow-active');
+            
+            // Start the interval
+            slideshowInterval = setInterval(nextPhoto, slideshowSpeed);
+        }
+
+        function stopSlideshow() {
+            isPlaying = false;
+            const btn = document.getElementById('startStopBtn');
+            const container = document.querySelector('.container');
+            
+            btn.textContent = '▶️ Start Slideshow';
+            btn.classList.remove('active');
+            container.classList.remove('slideshow-active');
+            
+            // Clear the interval
+            if (slideshowInterval) {
+                clearInterval(slideshowInterval);
+                slideshowInterval = null;
+            }
+        }
+
+        // Start/Stop Button
+        document.getElementById('startStopBtn').addEventListener('click', () => {
+            if (isPlaying) {
+                stopSlideshow();
+            } else {
+                startSlideshow();
+            }
+        });
+
+        // Speed Control
+        document.getElementById('speedControl').addEventListener('input', (e) => {
+            slideshowSpeed = parseInt(e.target.value);
+            const seconds = (slideshowSpeed / 1000).toFixed(1);
+            document.getElementById('speedDisplay').textContent = seconds + 's';
+            
+            // Restart slideshow with new speed if it's playing
+            if (isPlaying) {
+                stopSlideshow();
+                startSlideshow();
+            }
+        });
+
+        // Drag and Drop Support
+        const photoUpload = document.getElementById('photoUpload');
+
+        // Prevent default drag behaviors on the whole page
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // Highlight drop area when dragging over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            photoUpload.addEventListener(eventName, () => {
+                photoUpload.classList.add('drag-over');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            photoUpload.addEventListener(eventName, () => {
+                photoUpload.classList.remove('drag-over');
+            }, false);
+        });
+
+        // Handle dropped files
+        photoUpload.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }, false);
+
+        // Handle pasted images (Cmd+V)
+        document.addEventListener('paste', (e) => {
+            const items = e.clipboardData.items;
+            const files = [];
+            
+            for (let item of items) {
+                if (item.type.startsWith('image/')) {
+                    files.push(item.getAsFile());
+                }
+            }
+            
+            if (files.length > 0) {
+                handleFiles(files);
+            }
+        });
+
+        // Unified file handling function
+        function handleFiles(filesInput) {
+            const photosSection = document.getElementById('photosSection');
+            photosSection.innerHTML = '';
+            photos = [];
+            
+            let loadedCount = 0;
+            let totalFiles = 0;
+            
+            // Count valid image files
+            for (let file of filesInput) {
+                if (file && file.type.startsWith('image/')) {
+                    totalFiles++;
+                }
+            }
+            
+            if (totalFiles === 0) {
+                photosSection.innerHTML = '<p style="color: #6c757d;">No valid images found. Please try again.</p>';
+                return;
+            }
+            
+            // Load all photos
+            for (let file of filesInput) {
+                if (file && file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = (event) => {
+                        photos.push(event.target.result);
+                        loadedCount++;
+                        
+                        // When all photos are loaded, create containers
+                        if (loadedCount === totalFiles) {
+                            createPhotoContainers();
+                        }
+                    };
+                    
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+
+        // Initialize canvas background
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    </script>
+</body>
+</html>
