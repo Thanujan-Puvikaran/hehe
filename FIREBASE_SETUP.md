@@ -14,7 +14,7 @@ This guide will help you set up Firebase to host photos for your memory page wit
 
 1. In your Firebase project, click "Storage" in the left menu
 2. Click "Get started"
-3. Choose "Start in test mode" (we'll secure it later)
+3. Choose "Start in production mode" (we'll set secure rules)
 4. Click "Next" and "Done"
 
 ## Step 3: Enable Realtime Database
@@ -22,8 +22,16 @@ This guide will help you set up Firebase to host photos for your memory page wit
 1. Click "Realtime Database" in the left menu
 2. Click "Create Database"
 3. Choose your location (closest to your users)
-4. Start in "Test mode"
+4. Start in "locked mode" (we'll set secure rules)
 5. Click "Enable"
+
+## Step 4: Enable Authentication
+
+1. Click "Authentication" in the left menu
+2. Click "Get started"
+3. Click "Sign-in method" tab
+4. Enable "Anonymous" authentication
+5. Click "Save"
 
 ## Step 4: Get Firebase Configuration
 
@@ -52,65 +60,96 @@ const firebaseConfig = {
 
 With your actual config values from Firebase.
 
-## Step 6: Configure Security Rules
+## Step 6: Configure Security Rules (CRITICAL!)
 
 ### Storage Rules
-Go to Storage → Rules and replace with:
+Go to Storage → Rules and replace with these SECURE rules:
 
 ```
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     match /memories/{imageId} {
+      // Anyone can read
       allow read: if true;
-      allow write: if true; // Change this to add authentication later
+      
+      // Only authenticated users can write
+      allow write: if request.auth != null
+                   && request.resource.size < 5 * 1024 * 1024  // Max 5MB
+                   && request.resource.contentType.matches('image/.*');  // Images only
     }
   }
 }
 ```
 
 ### Database Rules
-Go to Realtime Database → Rules and replace with:
+Go to Realtime Database → Rules and replace with these SECURE rules:
 
 ```json
 {
   "rules": {
     "photos": {
       ".read": true,
-      ".write": true
+      ".write": "auth != null",
+      "$photoId": {
+        ".validate": "newData.hasChildren(['url', 'timestamp'])"
+      }
     }
   }
 }
 ```
 
+**What these rules do:**
+- ✅ Anyone can view photos (public gallery)
+- ✅ Only authenticated users can upload
+- ✅ Images limited to 5MB max
+- ✅ Only image files accepted
+- ✅ Data validation on uploads
+
 ## Step 7: Deploy to GitHub Pages
 
-1. Update both files with your Firebase config
-2. Commit and push:
+1. **IMPORTANT:** Change the password in upload.html:
+   - Open `upload.html`
+   - Find `const UPLOAD_PASSWORD = 'YourSecurePassword2026!';`
+   - Change to a strong password
+   - **DO NOT commit this password to a public repo!**
+
+2. Update both files with your Firebase config
+3. Commit and push:
 ```bash
-git add index.html view.html
-git commit -m "Add Firebase integration"
+git add index.html upload.html
+git commit -m "Add Firebase integration with authentication"
 git push
 ```
 
-3. Enable GitHub Pages (Settings → Pages → Deploy from main branch)
+4. Enable GitHub Pages (Settings → Pages → Deploy from main branch)
 
 ## How It Works
 
-- Upload photos on `index.html` → Photos stored in Firebase Storage
-- Photo URLs saved in Firebase Realtime Database
-- `view.html` loads photos from Firebase
-- Works from any device, anywhere!
+**Security Layers:**
+1. 🔒 Password gate on upload.html (client-side)
+2. 🔒 Firebase Anonymous Authentication (when password correct)
+3. 🔒 Firebase Security Rules (server-side enforcement)
+4. 🔒 File type validation (images only)
+5. 🔒 File size limits (5MB max)
 
-## Free Tier Limits
+**Access:**
+- Upload photos: `https://yourusername.github.io/hehe/upload.html` → Enter password → Authenticated upload
+- View photos: `https://yourusername.github.io/hehe/` → No authentication needed
 
-Firebase free tier includes:
-- 5GB Storage
-- 1GB/day download bandwidth
-- 10GB/month Realtime Database storage
+## Important Security Notes
 
-This is more than enough for a personal memory page!
+⚠️ **Password Protection:**
+- The password in `upload.html` is visible in source code
+- This is basic protection - don't use for highly sensitive data
+- Change the default password immediately
+- Consider keeping upload.html link private
 
-## Optional: Add Password Protection
+⚠️ **Best Practices:**
+- Use a strong password (20+ characters)
+- Don't share the upload.html URL publicly
+- Monitor Firebase console for unusual activity
+- Set up Firebase budget alerts
 
-To restrict uploads to `index.html`, you can add Firebase Authentication later.
+⚠️ **For Maximum Security:**
+Consider using Firebase Email/Password authentication instead of Anonymous auth for production use.
