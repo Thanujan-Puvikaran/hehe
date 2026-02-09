@@ -1,3 +1,37 @@
+
+# 🎯 MVP (Produit Minimum Viable)
+
+Créer une page web d’anniversaire simple et fun, accessible uniquement à une personne à la fois, permettant :
+- de dessiner un troll sur un canvas interactif
+- d’ajouter et d’afficher des photos souvenirs
+- d’assurer la sécurité par un accès protégé (mot de passe/session unique)
+- d’être hébergée localement sur la machine de l’organisateur
+
+---
+
+## 📋 Cahier des charges fonctionnel
+
+### 1. Accès & Sécurité
+- Authentification par mot de passe
+- Une seule session active à la fois (une personne connectée)
+- Session liée à l’adresse IP et expiration automatique
+
+### 2. Page principale
+- Canvas de dessin (troll, messages, etc.)
+- Outils : choix de couleur, taille du pinceau, gomme, effacer, sauvegarder le dessin
+- Galerie de photos (ajout et affichage)
+- Interface responsive (PC/tablette/mobile)
+
+### 3. Hébergement
+- Serveur local Python sécurisé (non accessible depuis Internet)
+- Accès via navigateur web sur la machine locale
+
+### 4. Expérience utilisateur
+- Design fun, festif et simple
+- Instructions claires pour l’utilisation
+
+---
+
 # 💫 Our Memories Together
 
 A beautiful, elegant web page for sharing memories through photos. Features a sophisticated dark design with scroll-based photo gallery and Firebase cloud storage.

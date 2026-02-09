@@ -18,7 +18,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 </head>
-</head>
 
 <body>
   <div class="container">
@@ -28,9 +27,13 @@
       <div class="scroll-indicator">↓ SCROLL ↓</div>
     </section>
 
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" style="text-align:center;padding:40px;color:#888;font-size:1.2em;">Loading memories...
+    </div>
+
     <!-- Photos Gallery -->
     <div class="photos-gallery" id="photosGallery">
-      <!-- Photos will be loaded here from localStorage -->
+      <!-- Photos will be loaded here from Firebase -->
     </div>
   </div>
 
@@ -52,61 +55,127 @@
     }
     const database = firebase.database();
 
-    // Load photos from Firebase
-    window.addEventListener('load', async () => {
-      const photosGallery = document.getElementById('photosGallery');
+    // Photo loading state
+    let allPhotos = [];
+    let photosLoaded = 0;
+    const PHOTOS_PER_PAGE = 10;
+    let loading = false;
+    let photosFromCache = false;
 
+    /**
+     * Try to load cached photos from localStorage.
+     */
+    function loadCachedPhotos() {
+      const cached = localStorage.getItem("cachedPhotos");
+      if (cached) {
+        try {
+          allPhotos = JSON.parse(cached);
+          photosLoaded = 0;
+          photosFromCache = true;
+          renderPhotos();
+        } catch (e) {
+          localStorage.removeItem("cachedPhotos");
+        }
+      }
+    }
+
+    /**
+     * Load photos from Firebase and cache them.
+     */
+    async function fetchPhotos() {
+      const loadingIndicator = document.getElementById("loadingIndicator");
+      if (!photosFromCache) {
+        loadingIndicator.style.display = "block";
+      }
       try {
-        const photosSnapshot = await database.ref('photos').once('value');
+        const photosSnapshot = await database.ref("photos").once("value");
         const photos = photosSnapshot.val();
-
         if (!photos || Object.keys(photos).length === 0) {
-          photosGallery.innerHTML = '<div class="no-photos">No memories added yet...</div>';
+          loadingIndicator.textContent = "No memories added yet...";
           return;
         }
-
-        Object.values(photos).forEach(photo => {
-          const photoItem = document.createElement('div');
-          photoItem.className = 'photo-item';
-
-          const img = document.createElement('img');
-          img.src = photo.url;
-          img.alt = 'Memory';
-
-          photoItem.appendChild(img);
-          photosGallery.appendChild(photoItem);
-        });
-
-        setTimeout(() => checkScrollAnimations(), 100);
+        const freshPhotos = Object.values(photos);
+        // Only update if different from cache
+        if (JSON.stringify(freshPhotos) !== JSON.stringify(allPhotos)) {
+          allPhotos = freshPhotos;
+          localStorage.setItem("cachedPhotos", JSON.stringify(allPhotos));
+          // Clear gallery and reload
+          const photosGallery = document.getElementById("photosGallery");
+          photosGallery.innerHTML = "";
+          photosLoaded = 0;
+          loadingIndicator.style.display = "none";
+          renderPhotos();
+        } else {
+          loadingIndicator.style.display = "none";
+        }
       } catch (error) {
-        console.error('Error loading photos:', error);
-        photosGallery.innerHTML = '<div class="no-photos">Error loading memories...</div>';
+        loadingIndicator.textContent = "Error loading memories...";
+        console.error("Error loading photos:", error);
       }
+    }
+
+    /**
+     * Render photos with infinite scroll.
+     */
+    function renderPhotos() {
+      const photosGallery = document.getElementById("photosGallery");
+      const loadingIndicator = document.getElementById("loadingIndicator");
+      let nextPhotos = allPhotos.slice(photosLoaded, photosLoaded + PHOTOS_PER_PAGE);
+      nextPhotos.forEach(photo => {
+        const photoItem = document.createElement("div");
+        photoItem.className = "photo-item";
+        const img = document.createElement("img");
+        img.src = photo.url;
+        img.alt = "Memory";
+        img.loading = "lazy";
+        // Hide loading indicator when first image loads
+        if (photosLoaded === 0) {
+          img.onload = () => {
+            loadingIndicator.style.display = "none";
+          };
+        }
+        photoItem.appendChild(img);
+        photosGallery.appendChild(photoItem);
+      });
+      photosLoaded += nextPhotos.length;
+      setTimeout(() => checkScrollAnimations(), 100);
+    }
+
+    // Infinite scroll handler
+    window.addEventListener('scroll', () => {
+      if (loading) return;
+      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 200) {
+        if (photosLoaded < allPhotos.length) {
+          loading = true;
+          renderPhotos();
+          loading = false;
+        }
+      }
+    });
+
+    // Initial load
+    window.addEventListener('load', () => {
+      loadCachedPhotos();
+      fetchPhotos();
     });
 
     // Scroll Animation System
     function checkScrollAnimations() {
       const photoItems = document.querySelectorAll('.photo-item');
       const windowHeight = window.innerHeight;
-
       photoItems.forEach(item => {
         const rect = item.getBoundingClientRect();
         const itemTop = rect.top;
-
-        // Trigger animation when item is 70% in viewport
         if (itemTop < windowHeight * 0.7) {
           item.classList.add('visible');
         }
       });
     }
-
-    // Listen to scroll events
     window.addEventListener('scroll', checkScrollAnimations);
     window.addEventListener('resize', checkScrollAnimations);
-
-    // Check on load
     checkScrollAnimations();
   </script>
+  <!-- For production: Use Redis or similar server-side cache to store photo metadata and URLs for fast access. -->
 </body>
 
 </html>

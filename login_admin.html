@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Access</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0b0c0f;
+            --text: rgba(255, 255, 255, .92);
+            --muted: rgba(255, 255, 255, .62);
+            --line: rgba(255, 255, 255, .10);
+            --panel: rgba(255, 255, 255, .03);
+            --radius: 22px;
+            --shadow: 0 18px 60px rgba(0, 0, 0, .55);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(900px 500px at 50% -10%, rgba(255, 255, 255, .08), transparent 55%), radial-gradient(700px 450px at 20% 80%, rgba(255, 255, 255, .04), transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500"><filter id="n"><feTurbulence baseFrequency="0.9" numOctaves="4"/></filter><rect width="500" height="500" filter="url(%23n)" opacity="0.03"/></svg>');
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .login-container {
+            position: relative;
+            z-index: 2;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 60px 50px;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(20px);
+        }
+
+        .icon {
+            font-size: 2.8em;
+            margin-bottom: 24px;
+            opacity: 0.9;
+        }
+
+        h1 {
+            color: var(--text);
+            margin-bottom: 10px;
+            font-size: 1.8em;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            margin-bottom: 40px;
+            font-size: 0.95em;
+            font-weight: 300;
+            letter-spacing: 0.01em;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        input[type="password"] {
+            padding: 16px 18px;
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            font-size: 15px;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s;
+        }
+
+        input[type="password"]:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, .25);
+            background: rgba(255, 255, 255, .08);
+        }
+
+        input[type="password"]::placeholder {
+            color: var(--muted);
+        }
+
+        button {
+            background: rgba(255, 255, 255, .12);
+            color: var(--text);
+            border: 1px solid var(--line);
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 0.02em;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, .18);
+            border-color: rgba(255, 255, 255, .25);
+            transform: translateY(-1px);
+        }
+
+        .security-note {
+            margin-top: 28px;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, .02);
+            border: 1px solid var(--line);
+            color: var(--muted);
+            border-radius: 10px;
+            font-size: 0.85em;
+            font-weight: 300;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="icon">🔐</div>
+        <h1>Admin Access</h1>
+        <p class="subtitle">Upload photos and create drawings</p>
+        <form action="/login?redirect=upload" method="GET">
+            <input type="password" name="password" placeholder="Enter admin password" required autofocus>
+            <button type="submit">Sign In</button>
+        </form>
+        <div class="security-note">⚠ One active session at a time. Access expires after 60 minutes.</div>
+    </div>
+</body>
+
+</html>

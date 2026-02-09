@@ -19,85 +19,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
   <style>
-    /* Password gate styles */
-    .password-gate {
-      position: fixed;
-      inset: 0;
-      background: var(--bg);
-      z-index: 9999;
-      display: grid;
-      place-items: center;
-      padding: 20px;
-    }
-
-    .password-gate.hidden {
-      display: none;
-    }
-
-    .password-form {
-      max-width: 400px;
-      width: 100%;
-      padding: 40px;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
-
-    .password-form h2 {
-      margin-bottom: 24px;
-      text-align: center;
-      font-size: 1.5rem;
-    }
-
-    .password-form input {
-      width: 100%;
-      padding: 12px 16px;
-      background: rgba(255, 255, 255, .05);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      color: var(--text);
-      font-size: 1rem;
-      font-family: 'Inter', sans-serif;
-      margin-bottom: 16px;
-    }
-
-    .password-form input:focus {
-      outline: none;
-      border-color: rgba(255, 255, 255, .3);
-      background: rgba(255, 255, 255, .08);
-    }
-
-    .password-form button {
-      width: 100%;
-      padding: 12px;
-      background: rgba(255, 255, 255, .12);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      color: var(--text);
-      font-size: 1rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all .3s;
-    }
-
-    .password-form button:hover {
-      background: rgba(255, 255, 255, .18);
-      border-color: rgba(255, 255, 255, .3);
-    }
-
-    .password-form .error {
-      color: #ef4444;
-      font-size: 0.9rem;
-      margin-top: 12px;
-      text-align: center;
-      display: none;
-    }
-
-    .password-form .error.show {
-      display: block;
-    }
-
     /* Upload-specific styles */
     .upload-section {
       position: fixed;
@@ -258,17 +179,7 @@
 </head>
 
 <body>
-  <!-- Password Gate -->
-  <div class="password-gate" id="passwordGate">
-    <div class="password-form">
-      <h2>Admin Access</h2>
-      <input type="password" id="passwordInput" placeholder="Enter password" autocomplete="off">
-      <button id="submitPassword">Unlock</button>
-      <div class="error" id="errorMsg">Incorrect password</div>
-    </div>
-  </div>
-
-  <div class="container" id="mainContent" style="display: none;">
+  <div class="container" id="mainContent">
     <!-- Hero Section -->
     <div class="hero-section">
       <h1>Our Memories Together</h1>
@@ -310,6 +221,7 @@
   </div>
 
   <script>
+
     // Canvas Setup
     const canvas = document.getElementById('drawingCanvas');
     const ctx = canvas.getContext('2d');
@@ -318,17 +230,27 @@
     let brushSize = 5;
     let isEraser = false;
 
-    // Drawing Functions
+    /**
+     * Start drawing on the canvas when mouse is pressed.
+     * @param {MouseEvent} e - Mouse event object
+     */
     function startDrawing(e) {
       isDrawing = true;
       draw(e);
     }
 
+    /**
+     * Stop drawing on the canvas when mouse is released or mouse leaves canvas.
+     */
     function stopDrawing() {
       isDrawing = false;
       ctx.beginPath();
     }
 
+    /**
+     * Draw on the canvas based on mouse or touch position.
+     * @param {MouseEvent|TouchEvent} e - Event object
+     */
     function draw(e) {
       if (!isDrawing) return;
 
@@ -354,6 +276,10 @@
 
     // Touch support for mobile
     canvas.addEventListener('touchstart', (e) => {
+      /**
+       * Handle touch start event for drawing on mobile devices.
+       * @param {TouchEvent} e - Touch event object
+       */
       e.preventDefault();
       const touch = e.touches[0];
       const mouseEvent = new MouseEvent('mousedown', {
@@ -364,6 +290,10 @@
     });
 
     canvas.addEventListener('touchmove', (e) => {
+      /**
+       * Handle touch move event for drawing on mobile devices.
+       * @param {TouchEvent} e - Touch event object
+       */
       e.preventDefault();
       const touch = e.touches[0];
       const mouseEvent = new MouseEvent('mousemove', {
@@ -374,6 +304,10 @@
     });
 
     canvas.addEventListener('touchend', (e) => {
+      /**
+       * Handle touch end event for drawing on mobile devices.
+       * @param {TouchEvent} e - Touch event object
+       */
       e.preventDefault();
       const mouseEvent = new MouseEvent('mouseup', {});
       canvas.dispatchEvent(mouseEvent);
@@ -381,18 +315,29 @@
 
     // Color Picker
     document.getElementById('colorPicker').addEventListener('change', (e) => {
+      /**
+       * Change the drawing color based on color picker selection.
+       * @param {Event} e - Change event object
+       */
       currentColor = e.target.value;
       isEraser = false;
     });
 
     // Brush Size
     document.getElementById('brushSize').addEventListener('input', (e) => {
+      /**
+       * Change the brush size for drawing.
+       * @param {Event} e - Input event object
+       */
       brushSize = e.target.value;
       document.getElementById('sizeDisplay').textContent = brushSize + 'px';
     });
 
     // Clear Canvas
     document.getElementById('clearBtn').addEventListener('click', () => {
+      /**
+       * Clear the entire canvas after user confirmation.
+       */
       if (confirm('Are you sure you want to clear the canvas?')) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
       }
@@ -400,6 +345,9 @@
 
     // Eraser
     document.getElementById('eraserBtn').addEventListener('click', () => {
+      /**
+       * Toggle eraser mode for drawing.
+       */
       isEraser = !isEraser;
       const btn = document.getElementById('eraserBtn');
       btn.style.background = isEraser ? 'rgba(251, 191, 36, 0.4)' : 'rgba(139, 92, 246, 0.3)';
@@ -408,6 +356,9 @@
 
     // Save Drawing
     document.getElementById('saveBtn').addEventListener('click', () => {
+      /**
+       * Save the current canvas drawing as a PNG file.
+       */
       const link = document.createElement('a');
       link.download = 'my-message.png';
       link.href = canvas.toDataURL();
@@ -429,40 +380,11 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // Password Protection
-    const UPLOAD_PASSWORD = 'YourSecurePassword2026!'; // Change this to your own password
-
-    function checkPassword() {
-      const passwordInput = document.getElementById('passwordInput');
-      const password = passwordInput.value;
-      const errorMsg = document.getElementById('errorMsg');
-
-      if (password === UPLOAD_PASSWORD) {
-        // Sign in anonymously to Firebase
-        firebase.auth().signInAnonymously()
-          .then(() => {
-            // Hide password gate and show main content
-            document.querySelector('.password-gate').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
-          })
-          .catch((error) => {
-            errorMsg.textContent = 'Authentication failed: ' + error.message;
-            errorMsg.classList.add('show');
-          });
-      } else {
-        errorMsg.textContent = 'Incorrect password. Please try again.';
-        errorMsg.classList.add('show');
-        passwordInput.value = '';
-        setTimeout(() => errorMsg.classList.remove('show'), 3000);
-      }
-    }
-
-    document.getElementById('submitPassword').addEventListener('click', checkPassword);
-    document.getElementById('passwordInput').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        checkPassword();
-      }
-    });
+    // Sign in anonymously to Firebase (server handles authentication)
+    firebase.auth().signInAnonymously()
+      .catch((error) => {
+        console.error('Firebase auth failed:', error);
+      });
 
     // Photo Upload Handling with Security (Simplified - No Storage needed)
     const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
