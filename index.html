@@ -99,13 +99,22 @@
       }
       try {
         const photosSnapshot = await database.ref("photos").once("value");
+        let photoOrder = "newest";
+        try {
+          const settingSnap = await database.ref("settings/photoOrder").once("value");
+          photoOrder = settingSnap.val() || "newest";
+        } catch (settingError) {
+          console.warn("Photo order setting unavailable, using default order:", settingError);
+        }
         const photos = photosSnapshot.val();
         if (!photos || Object.keys(photos).length === 0) {
           loadingIndicator.textContent = allPhotos.length === 0 ? "No memories added yet..." : "";
           loadingIndicator.style.display = allPhotos.length === 0 ? "block" : "none";
           return;
         }
-        const freshPhotos = Object.values(photos);
+        const freshPhotos = Object.values(photos).sort((a, b) =>
+          photoOrder === "newest" ? (b.timestamp || 0) - (a.timestamp || 0) : (a.timestamp || 0) - (b.timestamp || 0)
+        );
         // Only update if different from cache
         if (JSON.stringify(freshPhotos) !== JSON.stringify(allPhotos)) {
           allPhotos = freshPhotos;

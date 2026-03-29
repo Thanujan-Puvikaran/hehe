@@ -416,6 +416,13 @@
       <div class="scroll-indicator">↓ SCROLL ↓</div>
     </div>
 
+    <!-- Photos Sort Toggle -->
+    <div style="text-align:center; margin-bottom: 12px;">
+      <button id="sortToggleBtn" onclick="togglePhotoSort()"
+        style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 6px 16px; border-radius: 20px; cursor: pointer; font-size: 13px;">⬇
+        Newest first</button>
+    </div>
+
     <!-- Photos Gallery -->
     <div class="photos-gallery" id="photosGallery">
       <!-- Photos will be inserted here -->
@@ -1020,15 +1027,45 @@
     /**
      * Load existing photos from Firebase with delete capability on upload page.
      */
+    let currentSortOrder = 'newest';
+
+    async function togglePhotoSort() {
+      currentSortOrder = currentSortOrder === 'newest' ? 'oldest' : 'newest';
+      try {
+        await database.ref('settings/photoOrder').set(currentSortOrder);
+      } catch (error) {
+        console.warn('Could not save photo order setting:', error);
+      }
+      updateSortButton();
+      document.getElementById('photosGallery').innerHTML = '';
+      await loadPhotos();
+    }
+
+    function updateSortButton() {
+      const btn = document.getElementById('sortToggleBtn');
+      if (btn) btn.textContent = currentSortOrder === 'newest' ? '⬇ Newest first' : '⬆ Oldest first';
+    }
+
     async function loadPhotos() {
       if (!database) return;
       try {
         const photosSnapshot = await database.ref('photos').once('value');
+        try {
+          const settingSnap = await database.ref('settings/photoOrder').once('value');
+          currentSortOrder = settingSnap.val() || 'newest';
+        } catch (settingError) {
+          currentSortOrder = 'newest';
+          console.warn('Photo order setting unavailable, defaulting to newest:', settingError);
+        }
+        updateSortButton();
         const photos = photosSnapshot.val();
 
         if (photos) {
-          Object.entries(photos).forEach(([photoId, photo]) => {
-            const isUploadPage = window.location.pathname.includes('upload.html');
+          const sorted = Object.entries(photos).sort(([, a], [, b]) =>
+            currentSortOrder === 'newest' ? (b.timestamp || 0) - (a.timestamp || 0) : (a.timestamp || 0) - (b.timestamp || 0)
+          );
+          const isUploadPage = window.location.pathname.includes('upload.html');
+          sorted.forEach(([photoId, photo]) => {
             displayPhoto(photo.url, photoId, isUploadPage);
           });
         }

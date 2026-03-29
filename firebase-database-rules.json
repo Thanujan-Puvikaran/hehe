@@ -62,6 +62,17 @@
         }
       }
     },
+
+    "settings": {
+      ".read": true,
+      ".write": "auth != null",
+      "photoOrder": {
+        ".validate": "newData.isString() && (newData.val() == 'newest' || newData.val() == 'oldest')"
+      },
+      "$other": {
+        ".validate": false
+      }
+    },
     
     ".read": false,
     ".write": false

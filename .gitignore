@@ -59,6 +59,9 @@ target/
 cert.pem
 key.pem
 
+# Local login puzzle image
+puzzle.png
+
 # Editors / IDEs
 .vscode/
 .idea/
