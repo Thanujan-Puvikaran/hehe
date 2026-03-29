@@ -19,6 +19,7 @@ body{
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   background: var(--bg);
   min-height: 100vh;
+  min-height: 100svh;
   color: var(--text);
   overflow-x: hidden;
   text-rendering: optimizeLegibility;
@@ -50,15 +51,19 @@ body::after{
 .container{
   width: 100%;
   min-height: 100vh;
+  min-height: 100svh;
   position: relative;
   z-index: 1;
 }
 
 .hero-section{
-  height: 100vh;
+  position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+  min-height: 100dvh;
   display: grid;
   place-items: center;
-  padding: 0 20px;
+  padding: 0 20px 72px;
 }
 
 h1{
@@ -105,7 +110,7 @@ h2{
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 70px;
+  gap: 30px;
 }
 
 .photo-item{
@@ -130,6 +135,7 @@ h2{
   box-shadow: var(--shadow);
   transition: transform .35s ease, border-color .35s ease, box-shadow .35s ease;
   will-change: transform;
+  cursor: zoom-in;
 }
 
 .photo-item img:hover{
@@ -147,17 +153,91 @@ h2{
   text-transform: uppercase;
 }
 
+.lightbox{
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(8,10,14,.92);
+  backdrop-filter: blur(12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease;
+  z-index: 10000;
+}
+
+.lightbox.is-open{
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.lightbox-content{
+  position: relative;
+  width: min(92vw, 1200px);
+  max-height: 92vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox-image{
+  display: block;
+  max-width: 100%;
+  max-height: 92vh;
+  width: auto;
+  height: auto;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 30px 120px rgba(0,0,0,.75);
+  background: rgba(255,255,255,.03);
+}
+
+.lightbox-close{
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 999px;
+  background: rgba(18,20,26,.84);
+  color: var(--text);
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.lightbox-close:hover{
+  background: rgba(28,31,39,.96);
+}
+
 /* accessibility */
 @media (prefers-reduced-motion: reduce){
   .scroll-indicator{ animation: none; }
   .photo-item{ transition: none; }
   .photo-item img{ transition: none; }
+  .lightbox{ transition: none; }
 }
 
 /* mobile */
 @media (max-width: 768px){
   .photos-gallery{
-    gap: 56px;
+    gap: 22px;
     padding: 56px 14px 100px;
+  }
+
+  .lightbox{
+    padding: 14px;
+  }
+
+  .lightbox-content{
+    width: 100%;
+  }
+
+  .lightbox-close{
+    top: 10px;
+    right: 10px;
   }
 }

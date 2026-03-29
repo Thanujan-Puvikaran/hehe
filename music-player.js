@@ -263,10 +263,15 @@ const MusicPlayer = (() => {
       if (scrollTimeout) clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(handleScroll, 150);
     }, { passive: true });
+    // Autoplay music on load without waiting for user interaction
+    hasUserInteracted = true;
+    if (!isMuted) {
+      const idx = getTrackForScrollPosition();
+      loadAndPlayTrack(idx >= 0 ? idx : (shuffledOrder[0] || 0));
+    }
+    // Still listen for user interaction to enable if muted
     const events = ["click", "touchstart", "keydown"];
     const onFirst = () => {
-      hasUserInteracted = true;
-      events.forEach(e => document.removeEventListener(e, onFirst));
       if (!isPlaying && !isMuted) {
         const idx = getTrackForScrollPosition();
         loadAndPlayTrack(idx >= 0 ? idx : (shuffledOrder[0] || 0));
