@@ -19,6 +19,14 @@
   <style>
     .photo-item {
       cursor: zoom-in;
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .photo-item.revealed {
+      opacity: 1;
+      transform: none;
     }
 
     .photo-item img {
@@ -328,6 +336,25 @@
     let loading = false;
     let photosFromCache = false;
 
+    // One-by-one scroll reveal — only the next unrevealed photo is watched at a time
+    const revealQueue = [];
+    let revealObserver = null;
+
+    function observeNext() {
+      if (revealObserver) revealObserver.disconnect();
+      if (revealQueue.length === 0) return;
+      const next = revealQueue[0];
+      revealObserver = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          next.classList.add('revealed');
+          revealObserver.disconnect();
+          revealQueue.shift();
+          observeNext();
+        }
+      }, { threshold: 0.2 });
+      revealObserver.observe(next);
+    }
+
     /**
      * Try to load cached photos from localStorage.
      */
@@ -462,8 +489,10 @@
         }
 
         photosGallery.appendChild(photoItem);
+        revealQueue.push(photoItem);
       });
       photosLoaded += nextPhotos.length;
+      observeNext();
       updateEndQuestionVisibility();
       setTimeout(() => checkScrollAnimations(), 100);
     }
