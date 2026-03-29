@@ -29,6 +29,53 @@ export ADMIN_PAGE_PASSWORD="separate-admin-password"
 - Use the same password: Simple setup, one password to remember
 - Use different passwords: Stronger security, admin area protected separately
 
+## Firebase Runtime Configuration (Required)
+
+These values are served by `server.py` at `/firebase-config.json` so they are not hardcoded in frontend files.
+
+### `FIREBASE_API_KEY`
+Firebase web API key.
+
+```bash
+export FIREBASE_API_KEY="your-firebase-web-api-key"
+```
+
+### `FIREBASE_AUTH_DOMAIN`
+
+```bash
+export FIREBASE_AUTH_DOMAIN="your-project.firebaseapp.com"
+```
+
+### `FIREBASE_DATABASE_URL`
+
+```bash
+export FIREBASE_DATABASE_URL="https://your-project-default-rtdb.region.firebasedatabase.app"
+```
+
+### `FIREBASE_PROJECT_ID`
+
+```bash
+export FIREBASE_PROJECT_ID="your-project-id"
+```
+
+### `FIREBASE_STORAGE_BUCKET`
+
+```bash
+export FIREBASE_STORAGE_BUCKET="your-project.firebasestorage.app"
+```
+
+### `FIREBASE_MESSAGING_SENDER_ID`
+
+```bash
+export FIREBASE_MESSAGING_SENDER_ID="1234567890"
+```
+
+### `FIREBASE_APP_ID`
+
+```bash
+export FIREBASE_APP_ID="1:1234567890:web:abcdef1234567890"
+```
+
 ## Optional Environment Variables
 
 ### `ENABLE_HTTPS`

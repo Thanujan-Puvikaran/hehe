@@ -47,22 +47,22 @@
   </div>
 
   <script>
-    // Firebase Configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyDs9_ezT2OqHJLh9VGasZeEU1fz7-LWzBQ",
-      authDomain: "hehe-cbeb5.firebaseapp.com",
-      databaseURL: "https://hehe-cbeb5-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "hehe-cbeb5",
-      storageBucket: "hehe-cbeb5.firebasestorage.app",
-      messagingSenderId: "350333356990",
-      appId: "1:350333356990:web:862b0004e090689b33c7ef"
-    };
+    let database = null;
 
-    // Initialize Firebase
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
+    async function initializeFirebase() {
+      const response = await fetch('/firebase-config.json', {
+        credentials: 'same-origin',
+        cache: 'no-store'
+      });
+      if (!response.ok) {
+        throw new Error('Failed to load Firebase config');
+      }
+      const firebaseConfig = await response.json();
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      database = firebase.database();
     }
-    const database = firebase.database();
 
     // Photo loading state
     let allPhotos = [];
@@ -92,6 +92,7 @@
      * Load photos from Firebase and cache them. Falls back to cache on network failure.
      */
     async function fetchPhotos() {
+      if (!database) return;
       const loadingIndicator = document.getElementById("loadingIndicator");
       if (!photosFromCache) {
         loadingIndicator.style.display = "block";
@@ -200,10 +201,18 @@
     });
 
     // Initial load
-    window.addEventListener('load', () => {
+    window.addEventListener('load', async () => {
       updateOfflineBanner();
       loadCachedPhotos();
-      fetchPhotos();
+      try {
+        await initializeFirebase();
+        fetchPhotos();
+      } catch (error) {
+        console.error('Firebase initialization failed:', error);
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        loadingIndicator.textContent = 'Configuration error. Check Firebase env vars on server.';
+        loadingIndicator.style.display = 'block';
+      }
     });
 
     // Scroll Animation System

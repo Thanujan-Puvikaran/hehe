@@ -651,27 +651,32 @@
       }
     });
 
-    // Firebase Configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyDs9_ezT2OqHJLh9VGasZeEU1fz7-LWzBQ",
-      authDomain: "hehe-cbeb5.firebaseapp.com",
-      databaseURL: "https://hehe-cbeb5-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "hehe-cbeb5",
-      storageBucket: "hehe-cbeb5.firebasestorage.app",
-      messagingSenderId: "350333356990",
-      appId: "1:350333356990:web:862b0004e090689b33c7ef"
-    };
+    let database = null;
 
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-
-    // Sign in anonymously to Firebase (server handles authentication)
-    firebase.auth().signInAnonymously()
-      .catch((error) => {
-        console.error('Firebase auth failed:', error);
-        showFeedback('Connection error. Please refresh the page.', 'error', 0);
+    async function initializeFirebaseForUpload() {
+      const response = await fetch('/firebase-config.json', {
+        credentials: 'same-origin',
+        cache: 'no-store'
       });
+      if (!response.ok) {
+        throw new Error('Failed to load Firebase config');
+      }
+
+      const firebaseConfig = await response.json();
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      database = firebase.database();
+
+      await firebase.auth().signInAnonymously();
+      firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+          updateOfflineBanner();
+          loadPhotos();
+          loadDrawings();
+        }
+      });
+    }
 
     // Offline upload queue and retry tracking
     const uploadQueue = [];
@@ -700,6 +705,7 @@
      * Retry all queued uploads after reconnection.
      */
     async function retryQueuedUploads() {
+      if (!database) return;
       if (!navigator.onLine || uploadQueue.length === 0) return;
       showFeedback(`Retrying ${uploadQueue.length} upload(s)...`, 'success', 2000);
       while (uploadQueue.length > 0) {
@@ -813,6 +819,10 @@
     }
 
     async function processSelectedFiles(files) {
+      if (!database) {
+        showFeedback('❌ Firebase not ready yet. Please retry in a moment.', 'error', 3000);
+        return;
+      }
       if (!files || files.length === 0) {
         return;
       }
@@ -1011,6 +1021,7 @@
      * Load existing photos from Firebase with delete capability on upload page.
      */
     async function loadPhotos() {
+      if (!database) return;
       try {
         const photosSnapshot = await database.ref('photos').once('value');
         const photos = photosSnapshot.val();
@@ -1030,19 +1041,17 @@
       }
     }
 
-    // Call loadPhotos after authentication
-    firebase.auth().onAuthStateChanged((user) => {
-      if (user) {
-        updateOfflineBanner();
-        loadPhotos();
-        loadDrawings();
-      }
+    // Initialize Firebase after script setup.
+    initializeFirebaseForUpload().catch((error) => {
+      console.error('Firebase initialization failed:', error);
+      showFeedback('Connection error. Check server Firebase config.', 'error', 0);
     });
 
     /**
      * Load drawings from Firebase and display in gallery.
      */
     async function loadDrawings() {
+      if (!database) return;
       try {
         const drawingsSnapshot = await database.ref('drawings').once('value');
         const drawings = drawingsSnapshot.val();
