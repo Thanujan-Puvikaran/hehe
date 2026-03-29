@@ -61,6 +61,7 @@ key.pem
 
 # Local login puzzle image
 puzzle.png
+puzzle*.png
 
 # Editors / IDEs
 .vscode/
