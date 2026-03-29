@@ -62,49 +62,129 @@ With your actual config values from Firebase.
 
 ## Step 6: Configure Security Rules (CRITICAL!)
 
-### Storage Rules
-Go to Storage → Rules and replace with these SECURE rules:
+### 6.1 Storage Rules
+1. Go to **Storage** → **Rules** in Firebase Console
+2. Replace all content with the rules from `firebase-storage-rules.txt` in your project:
 
 ```
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    match /memories/{imageId} {
-      // Anyone can read
+    // Photos directory - readable by everyone, writable only by authenticated users
+    match /photos/{imageId} {
+      // Anyone can read (public gallery)
       allow read: if true;
       
       // Only authenticated users can write
       allow write: if request.auth != null
                    && request.resource.size < 5 * 1024 * 1024  // Max 5MB
                    && request.resource.contentType.matches('image/.*');  // Images only
+      
+      // Delete allowed only for authenticated users
+      allow delete: if request.auth != null;
+    }
+    
+    // Drawings directory - authenticated users only
+    match /drawings/{drawingId} {
+      allow read: if true;
+      allow write: if request.auth != null
+                   && request.resource.size < 10 * 1024 * 1024;  // Max 10MB for canvas
+      allow delete: if request.auth != null;
+    }
+    
+    // Deny all other access
+    match /{allPaths=**} {
+      allow read: if false;
+      allow write: if false;
     }
   }
 }
 ```
 
-### Database Rules
-Go to Realtime Database → Rules and replace with these SECURE rules:
+3. Click **Publish** to deploy the rules
+
+### 6.2 Database Rules
+1. Go to **Realtime Database** → **Rules** in Firebase Console
+2. Replace all content with the rules from `firebase-database-rules.json`:
 
 ```json
 {
   "rules": {
     "photos": {
+      // Anyone can read the photo metadata
+      ".read": true,
+      
+      // Only authenticated users can write
+      ".write": "auth != null",
+      
+      "$photoId": {
+        // Metadata structure validation
+        ".validate": "newData.hasChildren(['url', 'timestamp']) && newData.child('timestamp').isNumber() && newData.child('url').isString()",
+        
+        "url": {
+          ".validate": "newData.isString() && newData.val().length > 0"
+        },
+        "timestamp": {
+          ".validate": "newData.isNumber() && newData.val() > 0"
+        },
+        "size": {
+          ".validate": "newData.isNumber() && newData.val() < 5242880"
+        },
+        "type": {
+          ".validate": "newData.isString() && newData.val().matches(/image\\/.+/)"
+        },
+        "name": {
+          ".validate": "newData.isString()"
+        },
+        "uploadedBy": {
+          ".validate": "newData.isString()"
+        },
+        "caption": {
+          ".validate": "newData.isString() && newData.val().length <= 500"
+        }
+      }
+    },
+    
+    "drawings": {
       ".read": true,
       ".write": "auth != null",
-      "$photoId": {
-        ".validate": "newData.hasChildren(['url', 'timestamp'])"
+      
+      "$drawingId": {
+        ".validate": "newData.hasChildren(['url', 'timestamp']) && newData.child('timestamp').isNumber()",
+        
+        "url": {
+          ".validate": "newData.isString() && newData.val().length > 0"
+        },
+        "timestamp": {
+          ".validate": "newData.isNumber()"
+        },
+        "title": {
+          ".validate": "newData.isString() && newData.val().length <= 100"
+        },
+        "uploadedBy": {
+          ".validate": "newData.isString()"
+        }
       }
-    }
+    },
+    
+    ".read": false,
+    ".write": false
   }
 }
 ```
 
-**What these rules do:**
+3. Click **Publish** to deploy the rules
+
+### 6.3 What These Rules Do:
 - ✅ Anyone can view photos (public gallery)
-- ✅ Only authenticated users can upload
-- ✅ Images limited to 5MB max
+- ✅ Only authenticated users can upload photos
+- ✅ Only authenticated users can upload drawings
+- ✅ Images limited to 5MB, drawings to 10MB
 - ✅ Only image files accepted
-- ✅ Data validation on uploads
+- ✅ Strict data validation - prevents invalid entries
+- ✅ Metadata validation - enforces required fields
+- ✅ Only authenticated users can delete
+- ✅ Prevents accidental data corruption
 
 ## Step 7: Deploy to GitHub Pages
 

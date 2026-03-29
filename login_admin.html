@@ -156,7 +156,7 @@
         <div class="icon">🔐</div>
         <h1>Admin Access</h1>
         <p class="subtitle">Upload photos and create drawings</p>
-        <form action="/login?redirect=upload" method="GET">
+        <form action="/login" method="POST"><input type="hidden" name="redirect" value="upload">
             <input type="password" name="password" placeholder="Enter admin password" required autofocus>
             <button type="submit">Sign In</button>
         </form>

@@ -36,6 +36,8 @@ Créer une page web d’anniversaire simple et fun, accessible uniquement à une
 
 A beautiful, elegant web page for sharing memories through photos. Features a sophisticated dark design with scroll-based photo gallery and Firebase cloud storage.
 
+Deployment and operations details are in `DEPLOYMENT_GUIDE.md`.
+
 ## ✨ Features
 
 - 📸 **Photo Gallery**: Upload photos that appear beautifully as you scroll
@@ -106,9 +108,10 @@ A beautiful, elegant web page for sharing memories through photos. Features a so
 
 ## 🔒 Security Notes
 
-- ⚠️ Upload page has no password protection - keep the URL private
-- Photos stored in Firebase (free tier: 5GB storage)
-- For production, consider adding Firebase Authentication
+- Public and admin pages are protected by server-side password sessions
+- Admin and public passwords can be separate (`ADMIN_PAGE_PASSWORD`)
+- Photos are stored in Firebase (respect your Firebase rules and quotas)
+- For internet sharing, use Cloudflare Tunnel and keep admin URL private
 
 ## 🎨 How to Use
 

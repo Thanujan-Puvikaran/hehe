@@ -4,7 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Birthday Page - Login</title>
+    <title>Our Memories Together</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap"
+        rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,98 +17,179 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --bg: #0b0c0f;
+            --text: rgba(255, 255, 255, .92);
+            --muted: rgba(255, 255, 255, .55);
+            --line: rgba(255, 255, 255, .10);
+            --panel: rgba(255, 255, 255, .03);
+            --gold: rgba(255, 209, 102, .85);
+            --gold-glow: rgba(255, 209, 102, .15);
+            --radius: 24px;
+            --shadow: 0 24px 80px rgba(0, 0, 0, .6);
+        }
+
         body {
-            font-family: 'Comic Sans MS', cursive, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(800px 500px at 50% -5%, rgba(255, 209, 102, .06), transparent 55%),
+                radial-gradient(600px 400px at 15% 85%, rgba(255, 255, 255, .03), transparent 60%),
+                radial-gradient(500px 350px at 85% 90%, rgba(255, 209, 102, .03), transparent 55%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500"><filter id="n"><feTurbulence baseFrequency="0.9" numOctaves="4"/></filter><rect width="500" height="500" filter="url(%23n)" opacity="0.025"/></svg>');
+            pointer-events: none;
+            z-index: 1;
         }
 
         .login-container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 400px;
+            position: relative;
+            z-index: 2;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 64px 52px 56px;
+            max-width: 460px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(20px);
             text-align: center;
         }
 
+        .floats {
+            font-size: 1.8em;
+            letter-spacing: 0.15em;
+            margin-bottom: 32px;
+            opacity: 0.8;
+        }
+
         h1 {
-            color: #667eea;
-            margin-bottom: 10px;
-            font-size: 2em;
+            font-family: 'Playfair Display', Georgia, serif;
+            color: var(--gold);
+            font-size: 2.1em;
+            font-weight: 400;
+            letter-spacing: 0.01em;
+            line-height: 1.2;
+            margin-bottom: 14px;
         }
 
-        .emoji {
-            font-size: 3em;
-            margin: 20px 0;
-        }
-
-        p {
-            color: #6c757d;
-            margin-bottom: 30px;
+        .subtitle {
+            color: var(--muted);
+            margin-bottom: 44px;
+            font-size: 0.93em;
+            font-weight: 300;
+            letter-spacing: 0.02em;
+            line-height: 1.6;
         }
 
         form {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 18px;
         }
 
         input[type="password"] {
-            padding: 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: border-color 0.3s;
+            padding: 16px 18px;
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            font-size: 15px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.3s;
+            text-align: center;
+            letter-spacing: 0.08em;
         }
 
         input[type="password"]:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: rgba(255, 209, 102, .35);
+            background: rgba(255, 209, 102, .04);
+            box-shadow: 0 0 0 3px rgba(255, 209, 102, .06);
+        }
+
+        input[type="password"]::placeholder {
+            color: var(--muted);
+            letter-spacing: 0.01em;
         }
 
         button {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: bold;
+            background: var(--gold-glow);
+            color: var(--gold);
+            border: 1px solid rgba(255, 209, 102, .22);
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.3s;
+            font-family: 'DM Sans', sans-serif;
+            letter-spacing: 0.05em;
         }
 
         button:hover {
-            background: #764ba2;
+            background: rgba(255, 209, 102, .22);
+            border-color: rgba(255, 209, 102, .40);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 32px rgba(255, 209, 102, .12);
         }
 
-        .security-note {
-            margin-top: 20px;
-            padding: 15px;
-            background: #d1ecf1;
-            color: #0c5460;
+        button:active {
+            transform: translateY(0);
+        }
+
+        .note {
+            margin-top: 32px;
+            color: var(--muted);
+            font-size: 0.82em;
+            font-weight: 300;
+            letter-spacing: 0.01em;
+            line-height: 1.6;
+        }
+
+        .error-msg {
+            background: rgba(255, 80, 80, .08);
+            border: 1px solid rgba(255, 80, 80, .18);
+            color: rgba(255, 130, 130, .9);
             border-radius: 10px;
-            font-size: 0.9em;
+            padding: 12px 16px;
+            font-size: 0.88em;
+            margin-top: 4px;
         }
     </style>
 </head>
 
 <body>
     <div class="login-container">
-        <div class="emoji">🎂🎉</div>
-        <h1>Birthday Troll Page</h1>
-        <p>Enter the password to access the special birthday page!</p>
-        <form action="/login?redirect=index" method="GET">
-            <input type="password" name="password" placeholder="Enter password" required autofocus>
-            <button type="submit">Enter</button>
+        <div class="floats">✦ ✦ ✦</div>
+        <h1>A Gift, Just for You</h1>
+        <p class="subtitle">A quiet collection of cherished moments,<br>made with love — meant only for you.</p>
+        <form action="/login" method="POST">
+            <input type="hidden" name="redirect" value="index">
+            <input type="password" name="password" placeholder="Enter the password" required autofocus>
+            <button type="submit">Open</button>
         </form>
-        <div class="security-note">🔒 This page is secured. Only one person can access at a time.</div>
+        <p class="note">🔒 Private &amp; secure — only you can see this.</p>
     </div>
 </body>
 

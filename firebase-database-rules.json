@@ -1,0 +1,69 @@
+{
+  "rules": {
+    "photos": {
+      // Anyone can read the photo metadata
+      ".read": true,
+      
+      // Only authenticated users can write
+      ".write": "auth != null",
+      
+      "$photoid": {
+        // Metadata structure validation
+        ".validate": "newData.hasChildren(['url', 'timestamp']) && newData.child('timestamp').isNumber() && newData.child('url').isString()",
+        
+        "url": {
+          ".validate": "newData.isString() && newData.val().length > 0"
+        },
+        "timestamp": {
+          ".validate": "newData.isNumber() && newData.val() > 0"
+        },
+        "size": {
+          ".validate": "newData.isNumber() && newData.val() < 5242880"  // 5MB max
+        },
+        "type": {
+          ".validate": "newData.isString() && newData.val().matches(/image\\/.+/)"
+        },
+        "name": {
+          ".validate": "newData.isString()"
+        },
+        "uploadedBy": {
+          ".validate": "newData.isString()"
+        },
+        "caption": {
+          ".validate": "newData.isString() && newData.val().length <= 500"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+    
+    "drawings": {
+      ".read": true,
+      ".write": "auth != null",
+      
+      "$drawingid": {
+        ".validate": "newData.hasChildren(['url', 'timestamp']) && newData.child('timestamp').isNumber()",
+        
+        "url": {
+          ".validate": "newData.isString() && newData.val().length > 0"
+        },
+        "timestamp": {
+          ".validate": "newData.isNumber()"
+        },
+        "title": {
+          ".validate": "newData.isString() && newData.val().length <= 100"
+        },
+        "uploadedBy": {
+          ".validate": "newData.isString()"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+    
+    ".read": false,
+    ".write": false
+  }
+}

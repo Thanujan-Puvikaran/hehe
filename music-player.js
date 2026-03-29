@@ -14,9 +14,7 @@ const MusicPlayer = (() => {
   "use strict";
 
   const TRACKS = [
-    { src: "music/track1.mp3", title: "Track 1", sectionStart: 0.0, sectionEnd: 0.33 },
-    { src: "music/track2.mp3", title: "Track 2", sectionStart: 0.33, sectionEnd: 0.66 },
-    { src: "music/track3.mp3", title: "Track 3", sectionStart: 0.66, sectionEnd: 1.0 },
+    { src: "music/coastline.mp3", title: "Hollow Coves - Coastline", sectionStart: 0.0, sectionEnd: 0.33 },
   ];
 
   const FADE_DURATION_MS = 1500;
@@ -56,8 +54,9 @@ const MusicPlayer = (() => {
   function ensureAudioElement() {
     if (!audioElement) {
       audioElement = new Audio();
-      audioElement.loop = false;
+      audioElement.loop = true;
       audioElement.volume = 0;
+      audioElement.muted = isMuted;
       audioElement.preload = "auto";
       audioElement.addEventListener("ended", () => { playNextTrack(); });
       audioElement.addEventListener("error", (e) => {
@@ -74,11 +73,18 @@ const MusicPlayer = (() => {
    */
   function fadeVolumeTo(targetVolume, onComplete) {
     if (fadeInterval) clearInterval(fadeInterval);
-    if (!audioElement || isMuted) {
-      if (audioElement) audioElement.volume = isMuted ? 0 : targetVolume;
+    if (!audioElement) {
       if (onComplete) onComplete();
       return;
     }
+    // On iOS/Safari, programmatic volume is limited. Native muted state is reliable.
+    if (isMuted) {
+      audioElement.muted = true;
+      audioElement.volume = 0;
+      if (onComplete) onComplete();
+      return;
+    }
+    audioElement.muted = false;
     const startVolume = audioElement.volume;
     const steps = FADE_DURATION_MS / FADE_INTERVAL_MS;
     const volumeStep = (targetVolume - startVolume) / steps;
@@ -109,6 +115,7 @@ const MusicPlayer = (() => {
     const startPlay = () => {
       currentTrackIndex = trackIndex;
       audioElement.src = track.src;
+      audioElement.muted = isMuted;
       audioElement.play().then(() => {
         isPlaying = true;
         fadeVolumeTo(isMuted ? 0 : MAX_VOLUME);
@@ -169,7 +176,7 @@ const MusicPlayer = (() => {
     muteButton = document.createElement("button");
     muteButton.id = "musicToggle";
     muteButton.setAttribute("aria-label", "Toggle music");
-    muteButton.innerHTML = isMuted ? "\ud83d\udd07" : "\ud83d\udd0a";
+    muteButton.innerHTML = "\u25b6\ufe0f";
     Object.assign(muteButton.style, {
       position: "fixed", bottom: "30px", left: "30px", zIndex: "1000",
       width: "50px", height: "50px", borderRadius: "50%",
@@ -211,18 +218,27 @@ const MusicPlayer = (() => {
   /** Toggle mute state and persist preference in localStorage. */
   function toggleMute() {
     hasUserInteracted = true;
+    // First click: start playing (button shows play icon initially)
+    if (!isPlaying) {
+      isMuted = false;
+      localStorage.setItem("musicMuted", "false");
+      if (audioElement) audioElement.muted = false;
+      if (muteButton) muteButton.innerHTML = "\ud83d\udd0a";
+      const idx = getTrackForScrollPosition();
+      loadAndPlayTrack(idx >= 0 ? idx : (shuffledOrder[0] || 0));
+      return;
+    }
+    // Subsequent clicks: normal mute/unmute toggle
     isMuted = !isMuted;
     localStorage.setItem("musicMuted", isMuted ? "true" : "false");
     if (muteButton) muteButton.innerHTML = isMuted ? "\ud83d\udd07" : "\ud83d\udd0a";
     if (audioElement) {
       if (isMuted) {
+        audioElement.muted = true;
         fadeVolumeTo(0);
       } else {
+        audioElement.muted = false;
         fadeVolumeTo(MAX_VOLUME);
-        if (!isPlaying) {
-          const idx = getTrackForScrollPosition();
-          loadAndPlayTrack(idx >= 0 ? idx : (shuffledOrder[0] || 0));
-        }
       }
     }
   }
@@ -251,7 +267,10 @@ const MusicPlayer = (() => {
     const onFirst = () => {
       hasUserInteracted = true;
       events.forEach(e => document.removeEventListener(e, onFirst));
-      if (getScrollProgress() > 0.01 && !isPlaying && !isMuted) handleScroll();
+      if (!isPlaying && !isMuted) {
+        const idx = getTrackForScrollPosition();
+        loadAndPlayTrack(idx >= 0 ? idx : (shuffledOrder[0] || 0));
+      }
     };
     events.forEach(e => document.addEventListener(e, onFirst, { once: false }));
   }

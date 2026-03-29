@@ -113,6 +113,7 @@ h2{
   opacity: 0;
   transform: translateY(46px);
   transition: opacity .9s ease, transform .9s ease;
+  position: relative;
 }
 
 .photo-item.visible{

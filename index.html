@@ -7,15 +7,18 @@
   <title>Our Memories Together</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
+  <link rel="preload" as="style"
     href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Inter:wght@200;300;400;500;600&display=swap"
-    rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+    onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Inter:wght@200;300;400;500;600&display=swap"
+      rel="stylesheet">
+  </noscript>
+  <link rel="stylesheet" href="styles.min.css">
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 </head>
 
@@ -26,6 +29,12 @@
       <h1>Our Memories Together</h1>
       <div class="scroll-indicator">↓ SCROLL ↓</div>
     </section>
+
+    <!-- Offline Banner -->
+    <div id="offlineBanner"
+      style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;padding:12px 20px;text-align:center;font-size:.85rem;letter-spacing:.05em;background:rgba(30,30,35,.95);border-bottom:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.75);backdrop-filter:blur(12px);">
+      ⚡ You're offline — showing cached memories
+    </div>
 
     <!-- Loading Indicator -->
     <div id="loadingIndicator" style="text-align:center;padding:40px;color:#888;font-size:1.2em;">Loading memories...
@@ -80,7 +89,7 @@
     }
 
     /**
-     * Load photos from Firebase and cache them.
+     * Load photos from Firebase and cache them. Falls back to cache on network failure.
      */
     async function fetchPhotos() {
       const loadingIndicator = document.getElementById("loadingIndicator");
@@ -91,7 +100,8 @@
         const photosSnapshot = await database.ref("photos").once("value");
         const photos = photosSnapshot.val();
         if (!photos || Object.keys(photos).length === 0) {
-          loadingIndicator.textContent = "No memories added yet...";
+          loadingIndicator.textContent = allPhotos.length === 0 ? "No memories added yet..." : "";
+          loadingIndicator.style.display = allPhotos.length === 0 ? "block" : "none";
           return;
         }
         const freshPhotos = Object.values(photos);
@@ -109,10 +119,36 @@
           loadingIndicator.style.display = "none";
         }
       } catch (error) {
-        loadingIndicator.textContent = "Error loading memories...";
         console.error("Error loading photos:", error);
+        if (allPhotos.length > 0) {
+          // Cached photos already displayed, just hide the loader
+          loadingIndicator.style.display = "none";
+        } else {
+          loadingIndicator.textContent = navigator.onLine
+            ? "Error loading memories. Please try again."
+            : "You're offline — no cached memories available.";
+        }
       }
     }
+
+    /**
+     * Update the offline banner visibility based on network status.
+     */
+    function updateOfflineBanner() {
+      const banner = document.getElementById("offlineBanner");
+      if (!navigator.onLine) {
+        banner.style.display = "block";
+        document.body.style.paddingTop = "44px";
+      } else {
+        banner.style.display = "none";
+        document.body.style.paddingTop = "";
+        // Refresh photos when back online
+        fetchPhotos();
+      }
+    }
+
+    window.addEventListener("online", updateOfflineBanner);
+    window.addEventListener("offline", updateOfflineBanner);
 
     /**
      * Render photos with infinite scroll.
@@ -121,20 +157,30 @@
       const photosGallery = document.getElementById("photosGallery");
       const loadingIndicator = document.getElementById("loadingIndicator");
       let nextPhotos = allPhotos.slice(photosLoaded, photosLoaded + PHOTOS_PER_PAGE);
-      nextPhotos.forEach(photo => {
+      nextPhotos.forEach((photo, index) => {
         const photoItem = document.createElement("div");
         photoItem.className = "photo-item";
         const img = document.createElement("img");
         img.src = photo.url;
         img.alt = "Memory";
         img.loading = "lazy";
+        img.decoding = "async";
         // Hide loading indicator when first image loads
-        if (photosLoaded === 0) {
+        if (photosLoaded + index === 0) {
           img.onload = () => {
             loadingIndicator.style.display = "none";
           };
         }
         photoItem.appendChild(img);
+
+        // Add photo metadata if available (hover to see caption)
+        if (photo.caption) {
+          const caption = document.createElement("div");
+          caption.className = "photo-caption";
+          caption.textContent = photo.caption;
+          photoItem.appendChild(caption);
+        }
+
         photosGallery.appendChild(photoItem);
       });
       photosLoaded += nextPhotos.length;
@@ -155,6 +201,7 @@
 
     // Initial load
     window.addEventListener('load', () => {
+      updateOfflineBanner();
       loadCachedPhotos();
       fetchPhotos();
     });
@@ -174,8 +221,17 @@
     window.addEventListener('scroll', checkScrollAnimations);
     window.addEventListener('resize', checkScrollAnimations);
     checkScrollAnimations();
+
+    // Register service worker for offline shell caching.
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.min.js?v=2').catch((err) => {
+          console.warn('Service worker registration failed:', err);
+        });
+      });
+    }
   </script>
-  <script src="music-player.js"></script>
+  <script src="music-player.min.js?v=2"></script>
   <!-- For production: Use Redis or similar server-side cache to store photo metadata and URLs for fast access. -->
 </body>
 

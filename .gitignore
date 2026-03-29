@@ -55,6 +55,10 @@ target/
 .env.*.local
 .env.local
 
+# Local HTTPS certificates
+cert.pem
+key.pem
+
 # Editors / IDEs
 .vscode/
 .idea/
