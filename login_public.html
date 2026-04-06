@@ -136,8 +136,8 @@
             aspect-ratio: 1 / 1;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 2px;
-            padding: 6px;
+            gap: 0;
+            padding: 0;
             border-radius: 14px;
             border: 1px solid var(--line);
             background: rgba(255, 255, 255, .04);
@@ -179,8 +179,8 @@
 
         .puzzle-tile {
             display: block;
-            border: 1px solid rgba(255, 255, 255, .08);
-            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, .06);
+            border-radius: 0;
             background-repeat: no-repeat;
             background-size: 400% 400%;
             background-position: center;
@@ -288,7 +288,7 @@
 <body>
     <div class="login-container">
         <div class="floats">✦ ✦ ✦ ✦ ✦</div>
-        <h1>Just for You</h1>
+        <h1>To my love</h1>
         <p class="subtitle">Solve this 4x4 puzzle to unlock your birthday surprise.</p>
         <form action="/login" method="POST" id="loginForm">
             <input type="hidden" name="redirect" value="index">
@@ -328,6 +328,9 @@
         function renderBoard() {
             const board = document.getElementById('puzzleBoard');
             board.innerHTML = '';
+            const boardSize = board.offsetWidth;
+            const bgSize = boardSize + 'px ' + boardSize + 'px';
+            const tileSize = boardSize / GRID_SIZE;
             tiles.forEach((tileNum, idx) => {
                 const tile = document.createElement('div');
                 if (tileNum === null) {
@@ -335,9 +338,10 @@
                 } else {
                     tile.className = 'puzzle-tile';
                     tile.style.backgroundImage = 'url(/puzzle.png)';
+                    tile.style.backgroundSize = bgSize;
                     const col = tileNum % GRID_SIZE;
                     const row = Math.floor(tileNum / GRID_SIZE);
-                    tile.style.backgroundPosition = `${(col * 100 / (GRID_SIZE - 1))}% ${(row * 100 / (GRID_SIZE - 1))}%`;
+                    tile.style.backgroundPosition = `${-(col * tileSize)}px ${-(row * tileSize)}px`;
                     tile.addEventListener('click', () => moveTile(idx));
                 }
                 board.appendChild(tile);
