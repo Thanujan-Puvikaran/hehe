@@ -1,4 +1,4 @@
-.PHONY: help server tunnel tunnel-bg build test clean install lint
+.PHONY: help server tunnel tunnel-bg build test clean install lint tunnel-restart tunnel-log tunnel-bg-log tunnel-keep-alive tunnel-keep-alive-remove
 
 .DEFAULT_GOAL := help
 
@@ -56,9 +56,12 @@ deploy-firebase: ## Deploy Firebase rules to console
 	@echo "$(GREEN)Storage rules (after manual setup):$(NC)"
 	@echo "  npx firebase deploy --only storage"
 
-lint: ## Check for errors/warnings
+lint: ## Check for errors/warnings (Python + flake8)
 	@echo "$(BLUE)Checking for errors...$(NC)"
-	@python3 -m py_compile server.py test_server.py && echo "$(GREEN)✓ Python files OK$(NC)" || true
+	@python3 -m py_compile server.py test_server.py && echo "$(GREEN)✓ Python syntax OK$(NC)" || true
+	@echo ""
+	@echo "$(BLUE)Running flake8...$(NC)"
+	@uv run flake8 server.py && echo "$(GREEN)✓ Flake8 passed$(NC)" || true
 
 clean: ## Remove cache, logs, and minified files
 	@echo "$(BLUE)Cleaning up...$(NC)"
@@ -91,12 +94,40 @@ status: ## Check server status
 kill-tunnel: ## Kill background tunnel
 	@pkill -f "cloudflared tunnel" && echo "$(GREEN)✓ Tunnel stopped$(NC)" || echo "No tunnel running"
 
+tunnel-restart: ## Restart Cloudflare tunnel (kill + restart)
+	@echo "$(BLUE)Restarting Cloudflare tunnel...$(NC)"
+	@make kill-tunnel
+	@sleep 1
+	@make tunnel-bg
+
+tunnel-log: ## Show tunnel logs (requires tunnel running with logs)
+	@tail -f /tmp/cloudflare-tunnel.log 2>/dev/null || echo "No log file found. Restart tunnel with 'make tunnel-bg-log'"
+
+tunnel-bg-log: ## Start tunnel in background with logs
+	@echo "$(BLUE)Starting Cloudflare tunnel with logging...$(NC)"
+	@mkdir -p /tmp
+	@nohup cloudflared tunnel --url http://localhost:8888 > /tmp/cloudflare-tunnel.log 2>&1 &
+	@echo "$(GREEN)✓ Tunnel running. View logs with: make tunnel-log$(NC)"
+
+
 kill-server: ## Kill background server
 	@pkill -f "python.*server.py" && echo "$(GREEN)✓ Server stopped$(NC)" || echo "No server running"
 
 ps: ## Show running tunnels and servers
 	@echo "$(BLUE)Running processes:$(NC)"
 	@ps aux | grep -E "cloudflared|python.*server" | grep -v grep || echo "None"
+
+tunnel-keep-alive: ## Setup cron to auto-restart tunnel every 6 hours (prevents crashes)
+	@echo "$(BLUE)Setting up auto-restart cron job...$(NC)"
+	@echo "Tunnel will restart every 6 hours (midnight, 6am, noon, 6pm)"
+	@CRONENTRY="0 0,6,12,18 * * * pkill -f 'cloudflared tunnel'; sleep 2; cd $(PWD) && nohup cloudflared tunnel --url http://localhost:8888 > /tmp/cloudflare-tunnel.log 2>&1 &" && \
+	(crontab -l 2>/dev/null | grep -v 'cloudflared tunnel' ; echo "$$CRONENTRY") | crontab - && \
+	echo "$(GREEN)✓ Cron job installed$(NC)"
+
+tunnel-keep-alive-remove: ## Remove auto-restart cron job
+	@echo "$(BLUE)Removing auto-restart cron job...$(NC)"
+	@crontab -l 2>/dev/null | grep -v 'cloudflared tunnel' | crontab - && \
+	echo "$(GREEN)✓ Cron job removed$(NC)" || echo "No cron job found"
 
 # Quick shortcuts
 s: server ## Alias: make server
