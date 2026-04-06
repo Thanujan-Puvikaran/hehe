@@ -1,4 +1,4 @@
-.PHONY: help server tunnel tunnel-bg build test clean install lint tunnel-restart tunnel-log tunnel-bg-log tunnel-keep-alive tunnel-keep-alive-remove tunnel-notify-setup
+.PHONY: help server tunnel tunnel-bg build test clean install lint tunnel-restart tunnel-log tunnel-bg-log tunnel-keep-alive tunnel-keep-alive-remove tunnel-notify-setup tunnel-imessage-test
 
 .DEFAULT_GOAL := help
 
@@ -103,24 +103,40 @@ tunnel-restart: ## Restart Cloudflare tunnel (kill + restart)
 tunnel-log: ## Show tunnel logs (requires tunnel running with logs)
 	@tail -f /tmp/cloudflare-tunnel.log 2>/dev/null || echo "No log file found. Restart tunnel with 'make tunnel-bg-log'"
 
-tunnel-bg-log: ## Start tunnel in background with logs + phone notification
+tunnel-bg-log: ## Start tunnel in background with logs + iMessage notification
 	@echo "$(BLUE)Starting Cloudflare tunnel with logging...$(NC)"
 	@mkdir -p /tmp
 	@nohup cloudflared tunnel --url http://localhost:8888 > /tmp/cloudflare-tunnel.log 2>&1 &
 	@echo "$(GREEN)✓ Tunnel running. Waiting for URL...$(NC)"
-	@NTFY_TOPIC=$$(grep NTFY_TOPIC .env | cut -d= -f2); \
+	@RECIPIENT=$$(grep IMESSAGE_RECIPIENT .env | cut -d= -f2); \
 	for i in $$(seq 1 30); do \
 		URL=$$(grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' /tmp/cloudflare-tunnel.log 2>/dev/null | head -1); \
 		if [ -n "$$URL" ]; then \
 			echo "$(GREEN)Tunnel URL: $$URL$(NC)"; \
-			curl -s -d "$$URL" -H "Title: 🌐 Tunnel URL" -H "Priority: high" -H "Tags: link" "https://ntfy.sh/$$NTFY_TOPIC" > /dev/null && \
-			echo "$(GREEN)✓ Notification sent to your phone!$(NC)" || \
-			echo "Could not send notification (check NTFY_TOPIC in .env)"; \
+			if [ -n "$$RECIPIENT" ]; then \
+				printf 'tell application "Messages"\nset svc to first service whose service type = iMessage\nset p to participant "%s" of svc\nsend "🌐 Tunnel URL: %s" to p\nend tell' "$$RECIPIENT" "$$URL" > /tmp/hehe_imsg.applescript && \
+				osascript /tmp/hehe_imsg.applescript && \
+				echo "$(GREEN)✓ iMessage sent to $$RECIPIENT$(NC)" || \
+				echo "iMessage failed — is Messages signed in?"; \
+			else \
+				echo "Set IMESSAGE_RECIPIENT in .env to enable notifications"; \
+			fi; \
 			break; \
 		fi; \
 		sleep 1; \
 	done
 	@echo "View logs with: make tunnel-log"
+
+tunnel-imessage-test: ## Send a test iMessage to verify setup
+	@RECIPIENT=$$(grep IMESSAGE_RECIPIENT .env | cut -d= -f2); \
+	if [ -z "$$RECIPIENT" ]; then \
+		echo "Add IMESSAGE_RECIPIENT=+1234567890 (or email) to your .env first"; \
+	else \
+		printf 'tell application "Messages"\nset svc to first service whose service type = iMessage\nset p to participant "%s" of svc\nsend "✅ Test from hehe tunnel setup!" to p\nend tell' "$$RECIPIENT" > /tmp/hehe_imsg.applescript && \
+		osascript /tmp/hehe_imsg.applescript && \
+		echo "$(GREEN)✓ Test iMessage sent to $$RECIPIENT$(NC)" || \
+		echo "Failed — make sure Messages app is open and signed into iMessage"; \
+	fi
 
 
 kill-server: ## Kill background server
@@ -138,20 +154,19 @@ tunnel-keep-alive: ## Setup cron to auto-restart tunnel every 6 hours (prevents 
 	(crontab -l 2>/dev/null | grep -v 'cloudflared tunnel' ; echo "$$CRONENTRY") | crontab - && \
 	echo "$(GREEN)✓ Cron job installed (notifications go to ntfy topic: $$NTFY_TOPIC)$(NC)"
 
-tunnel-notify-setup: ## Show how to receive tunnel URL notifications on your phone
-	@NTFY_TOPIC=$$(grep NTFY_TOPIC .env | cut -d= -f2); \
-	echo "$(BLUE)Phone notification setup:$(NC)"; \
+tunnel-notify-setup: ## Show how to set up iMessage notifications
+	@RECIPIENT=$$(grep IMESSAGE_RECIPIENT .env | cut -d= -f2); \
+	echo "$(BLUE)iMessage notification setup:$(NC)"; \
 	echo ""; \
-	echo "  1. Install the ntfy app on your phone:"; \
-	echo "     iOS: https://apps.apple.com/app/ntfy/id1625396347"; \
-	echo "     Android: https://play.google.com/store/apps/details?id=io.heckel.ntfy"; \
+	echo "  1. Add your phone number or Apple ID email to .env:"; \
+	echo "     IMESSAGE_RECIPIENT=+1234567890"; \
+	echo "     (or: IMESSAGE_RECIPIENT=you@icloud.com)"; \
 	echo ""; \
-	echo "  2. Subscribe to topic: $$NTFY_TOPIC"; \
-	echo "     Or open this URL on your phone:"; \
-	echo "     https://ntfy.sh/$$NTFY_TOPIC"; \
+	echo "  2. Make sure Messages.app is open and signed into iMessage on this Mac."; \
 	echo ""; \
-	echo "  3. Run 'make tunnel-bg-log' to start the tunnel."; \
-	echo "     A notification with the URL will arrive within ~15s."
+	echo "  3. Test with: make tunnel-imessage-test"; \
+	echo ""; \
+	if [ -n "$$RECIPIENT" ]; then echo "  Current recipient: $$RECIPIENT"; else echo "  Current recipient: (not set)"; fi
 
 tunnel-keep-alive-remove: ## Remove auto-restart cron job
 	@echo "$(BLUE)Removing auto-restart cron job...$(NC)"
@@ -160,10 +175,6 @@ tunnel-keep-alive-remove: ## Remove auto-restart cron job
 
 # Quick shortcuts
 s: server ## Alias: make server
-t: tunnel ## Alias: make tunnel
-tb: tunnel-bg ## Alias: make tunnel-bg
-b: build ## Alias: make build
-ts: test ## Alias: make test
 t: tunnel ## Alias: make tunnel
 tb: tunnel-bg ## Alias: make tunnel-bg
 b: build ## Alias: make build
