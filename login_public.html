@@ -329,9 +329,6 @@
         function renderBoard() {
             const board = document.getElementById('puzzleBoard');
             board.innerHTML = '';
-            const boardSize = board.offsetWidth;
-            const bgSize = boardSize + 'px ' + boardSize + 'px';
-            const tileSize = boardSize / GRID_SIZE;
             tiles.forEach((tileNum, idx) => {
                 const tile = document.createElement('div');
                 if (tileNum === null) {
@@ -339,10 +336,14 @@
                 } else {
                     tile.className = 'puzzle-tile';
                     tile.style.backgroundImage = 'url(/puzzle.png)';
-                    tile.style.backgroundSize = bgSize;
+                    // background-size: N*100% spreads the full image across N tiles
+                    tile.style.backgroundSize = `${GRID_SIZE * 100}% ${GRID_SIZE * 100}%`;
                     const col = tileNum % GRID_SIZE;
                     const row = Math.floor(tileNum / GRID_SIZE);
-                    tile.style.backgroundPosition = `${-(col * tileSize)}px ${-(row * tileSize)}px`;
+                    // position each tile's slice using % of (tile - bgSize) formula
+                    const xPct = (col / (GRID_SIZE - 1)) * 100;
+                    const yPct = (row / (GRID_SIZE - 1)) * 100;
+                    tile.style.backgroundPosition = `${xPct}% ${yPct}%`;
                     tile.addEventListener('click', () => moveTile(idx));
                 }
                 board.appendChild(tile);
@@ -417,10 +418,6 @@
         window.addEventListener('load', () => {
             initPuzzle();
             shufflePuzzle();
-        });
-
-        window.addEventListener('resize', () => {
-            if (!isSolved) renderBoard();
         });
     </script>
 </body>
