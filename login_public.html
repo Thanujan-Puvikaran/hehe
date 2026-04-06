@@ -27,6 +27,7 @@
             --gold-glow: rgba(255, 209, 102, .15);
             --radius: 24px;
             --shadow: 0 24px 80px rgba(0, 0, 0, .6);
+            --puzzle-aspect: 3 / 2;
         }
 
         body {
@@ -83,6 +84,10 @@
                 max-width: 100%;
             }
 
+            .puzzle-wrap {
+                max-width: 100%;
+            }
+
             h1 {
                 font-size: 1.7em;
             }
@@ -122,7 +127,7 @@
         .puzzle-wrap {
             margin: 0 auto;
             width: 100%;
-            max-width: 560px;
+            max-width: 640px;
         }
 
         form {
@@ -133,7 +138,7 @@
 
         .puzzle-board {
             width: 100%;
-            aspect-ratio: 1 / 1;
+            aspect-ratio: var(--puzzle-aspect);
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             grid-template-rows: repeat(4, 1fr);
@@ -153,10 +158,10 @@
 
         .puzzle-complete {
             width: 100%;
-            aspect-ratio: 1 / 1;
+            aspect-ratio: var(--puzzle-aspect);
             border-radius: 14px;
             border: 1px solid rgba(255, 209, 102, .35);
-            background: url('/puzzle.png') center/cover no-repeat;
+            background: url('/puzzle.png') center/contain no-repeat;
             box-shadow: 0 0 32px rgba(255, 209, 102, .12);
             animation: slideIn 0.5s ease;
             display: none;
@@ -288,7 +293,7 @@
 
 <body>
     <div class="login-container">
-        <div class="floats">✦ ✦ ✦ ✦ ✦</div>
+        <div class="floats">✦ ✦ ✦ ✦ ✦ ✦ ✦</div>
         <h1>To my love</h1>
         <p class="subtitle">Solve this 4x4 puzzle to unlock your birthday surprise.</p>
         <form action="/login" method="POST" id="loginForm">
@@ -336,11 +341,8 @@
                 } else {
                     tile.className = 'puzzle-tile';
                     tile.style.backgroundImage = 'url(/puzzle.png)';
-                    // background-size: N*100% spreads the full image across N tiles
-                    tile.style.backgroundSize = `${GRID_SIZE * 100}% ${GRID_SIZE * 100}%`;
                     const col = tileNum % GRID_SIZE;
                     const row = Math.floor(tileNum / GRID_SIZE);
-                    // position each tile's slice using % of (tile - bgSize) formula
                     const xPct = (col / (GRID_SIZE - 1)) * 100;
                     const yPct = (row / (GRID_SIZE - 1)) * 100;
                     tile.style.backgroundPosition = `${xPct}% ${yPct}%`;
