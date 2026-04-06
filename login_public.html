@@ -136,6 +136,7 @@
             aspect-ratio: 1 / 1;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
             gap: 0;
             padding: 0;
             border-radius: 14px;
@@ -416,6 +417,10 @@
         window.addEventListener('load', () => {
             initPuzzle();
             shufflePuzzle();
+        });
+
+        window.addEventListener('resize', () => {
+            if (!isSolved) renderBoard();
         });
     </script>
 </body>
