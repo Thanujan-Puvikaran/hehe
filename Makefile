@@ -94,11 +94,11 @@ status: ## Check server status
 kill-tunnel: ## Kill background tunnel
 	@pkill -f "cloudflared tunnel" && echo "$(GREEN)✓ Tunnel stopped$(NC)" || echo "No tunnel running"
 
-tunnel-restart: ## Restart Cloudflare tunnel (kill + restart)
+tunnel-restart: ## Restart Cloudflare tunnel (kill + restart with iMessage notification)
 	@echo "$(BLUE)Restarting Cloudflare tunnel...$(NC)"
 	@make kill-tunnel
 	@sleep 1
-	@make tunnel-bg
+	@make tunnel-bg-log
 
 tunnel-log: ## Show tunnel logs (requires tunnel running with logs)
 	@tail -f /tmp/cloudflare-tunnel.log 2>/dev/null || echo "No log file found. Restart tunnel with 'make tunnel-bg-log'"
@@ -147,12 +147,10 @@ ps: ## Show running tunnels and servers
 	@ps aux | grep -E "cloudflared|python.*server" | grep -v grep || echo "None"
 
 tunnel-keep-alive: ## Setup cron to auto-restart tunnel every 6 hours (prevents crashes)
-	@echo "$(BLUE)Setting up auto-restart cron job...$(NC)"
-	@echo "Tunnel will restart every 6 hours (midnight, 6am, noon, 6pm)"
-	@NTFY_TOPIC=$$(grep NTFY_TOPIC .env | cut -d= -f2); \
-	CRONENTRY="0 0,6,12,18 * * * cd $(PWD) && pkill -f 'cloudflared tunnel'; sleep 2; nohup cloudflared tunnel --url http://localhost:8888 > /tmp/cloudflare-tunnel.log 2>&1 & sleep 20 && URL=\$\$(grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' /tmp/cloudflare-tunnel.log | head -1) && curl -s -d \"\$$URL\" -H 'Title: 🌐 Tunnel restarted' https://ntfy.sh/$$NTFY_TOPIC > /dev/null"; \
-	(crontab -l 2>/dev/null | grep -v 'cloudflared tunnel' ; echo "$$CRONENTRY") | crontab - && \
-	echo "$(GREEN)✓ Cron job installed (notifications go to ntfy topic: $$NTFY_TOPIC)$(NC)"
+	@echo "$(BLUE)Setting up auto-restart cron job (every 6 hours)...$(NC)"
+	@chmod +x tunnel-restart.sh
+	@(crontab -l 2>/dev/null | grep -v 'tunnel-restart.sh'; echo "0 */6 * * * $(PWD)/tunnel-restart.sh") | crontab -
+	@echo "$(GREEN)✓ Cron job installed. Tunnel restarts every 6 hours + iMessage sent.$(NC)"
 
 tunnel-notify-setup: ## Show how to set up iMessage notifications
 	@RECIPIENT=$$(grep IMESSAGE_RECIPIENT .env | cut -d= -f2); \
@@ -169,9 +167,8 @@ tunnel-notify-setup: ## Show how to set up iMessage notifications
 	if [ -n "$$RECIPIENT" ]; then echo "  Current recipient: $$RECIPIENT"; else echo "  Current recipient: (not set)"; fi
 
 tunnel-keep-alive-remove: ## Remove auto-restart cron job
-	@echo "$(BLUE)Removing auto-restart cron job...$(NC)"
-	@crontab -l 2>/dev/null | grep -v 'cloudflared tunnel' | crontab - && \
-	echo "$(GREEN)✓ Cron job removed$(NC)" || echo "No cron job found"
+	@(crontab -l 2>/dev/null | grep -v 'tunnel-restart.sh') | crontab - && \
+	echo "$(GREEN)✓ Cron job removed$(NC)"
 
 # Quick shortcuts
 s: server ## Alias: make server
