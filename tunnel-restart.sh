@@ -45,8 +45,8 @@ log_msg "Starting tunnel restart with $CLOUDFLARED_BIN"
 pkill -f "cloudflared tunnel" 2>/dev/null || true
 sleep 2
 
-# Start new tunnel
-nohup "$CLOUDFLARED_BIN" tunnel --url http://localhost:8888 > "$LOG" 2>&1 &
+# Start new tunnel using HTTP/2 transport for better reliability on restrictive networks
+nohup "$CLOUDFLARED_BIN" tunnel --protocol http2 --url http://localhost:8888 > "$LOG" 2>&1 &
 
 # Wait up to 60s for the URL to appear
 URL=""

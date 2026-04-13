@@ -21,11 +21,11 @@ install: ## Install dependencies (npm + Python)
 server: ## Start server locally (http://localhost:8888)
 	@echo "$(BLUE)Starting server at http://localhost:8888$(NC)"
 	@echo "Password: $$(grep BIRTHDAY_PAGE_PASSWORD .env | cut -d= -f2)"
-	@source .env && python3 server.py
+	@set -a; source .env; set +a; python3 server.py
 
 tunnel: ## Start Cloudflare tunnel (keeps tunnel + server running)
 	@echo "$(BLUE)Starting server + Cloudflare tunnel...$(NC)"
-	@source .env && python3 server.py &
+	@set -a; source .env; set +a; python3 server.py &
 	@sleep 2
 	@echo "$(GREEN)Tunnel URL:$(NC)"
 	@cloudflared tunnel --url http://localhost:8888
@@ -106,7 +106,7 @@ tunnel-log: ## Show tunnel logs (requires tunnel running with logs)
 tunnel-bg-log: ## Start tunnel in background with logs + iMessage notification
 	@echo "$(BLUE)Starting Cloudflare tunnel with logging...$(NC)"
 	@mkdir -p /tmp
-	@nohup cloudflared tunnel --url http://localhost:8888 > /tmp/cloudflare-tunnel.log 2>&1 &
+	@nohup cloudflared tunnel --protocol http2 --url http://localhost:8888 > /tmp/cloudflare-tunnel.log 2>&1 &
 	@echo "$(GREEN)✓ Tunnel running. Waiting for URL...$(NC)"
 	@RECIPIENT=$$(grep IMESSAGE_RECIPIENT .env | cut -d= -f2); \
 	for i in $$(seq 1 30); do \
